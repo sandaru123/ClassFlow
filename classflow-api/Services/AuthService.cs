@@ -7,13 +7,14 @@ using ClassFlow.Api.Constants;
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Auth;
 using ClassFlow.Api.Entities;
+using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ClassFlow.Api.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -310,3 +311,4 @@ public class AuthService
         return string.Join("; ", errors.Select(error => error.Description));
     }
 }
+

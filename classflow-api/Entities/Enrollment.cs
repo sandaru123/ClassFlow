@@ -16,7 +16,13 @@ public class Enrollment
 
     public EnrollmentStatus Status { get; set; } = EnrollmentStatus.Active;
 
+    public bool IsActive { get; set; } = true;
+
     public DateTimeOffset EnrolledAt { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public DateTimeOffset? UpdatedAt { get; set; }
 
     public string? Notes { get; set; }
 

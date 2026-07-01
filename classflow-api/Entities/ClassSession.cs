@@ -24,6 +24,8 @@ public class ClassSession
 
     public ClassMode Mode { get; set; }
 
+    public string? MeetingProvider { get; set; }
+
     public ClassSessionStatus Status { get; set; } = ClassSessionStatus.Scheduled;
 
     public string? MeetingUrl { get; set; }

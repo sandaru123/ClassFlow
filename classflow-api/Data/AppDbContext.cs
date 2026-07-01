@@ -66,6 +66,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Course>(entity =>
         {
+            entity.Property(x => x.MonthlyFee).HasPrecision(18, 2);
+
             entity.HasMany(x => x.Enrollments)
                 .WithOne(x => x.Course)
                 .HasForeignKey(x => x.CourseId)
@@ -84,6 +86,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Enrollment>(entity =>
         {
+            entity.HasIndex(x => new { x.StudentId, x.CourseId, x.IsActive });
+
             entity.HasMany(x => x.Payments)
                 .WithOne(x => x.Enrollment)
                 .HasForeignKey(x => x.EnrollmentId)
@@ -137,3 +141,5 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 }
+
+

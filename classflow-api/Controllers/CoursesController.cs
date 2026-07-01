@@ -1,5 +1,5 @@
 ﻿using ClassFlow.Api.Constants;
-using ClassFlow.Api.DTOs.Teachers;
+using ClassFlow.Api.DTOs.Courses;
 using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,33 +7,33 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClassFlow.Api.Controllers;
 
 [ApiController]
-[Route("api/teachers")]
+[Route("api/courses")]
 [Authorize]
-public class TeachersController : ControllerBase
+public class CoursesController : ControllerBase
 {
-    private readonly ITeacherService _teacherService;
+    private readonly ICourseService _courseService;
 
-    public TeachersController(ITeacherService teacherService)
+    public CoursesController(ICourseService courseService)
     {
-        _teacherService = teacherService;
+        _courseService = courseService;
     }
 
     [HttpGet]
     [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
-    public async Task<ActionResult<IReadOnlyList<TeacherResponse>>> GetAll()
+    public async Task<ActionResult<IReadOnlyList<CourseResponse>>> GetAll()
     {
-        var teachers = await _teacherService.GetAllAsync();
-        return Ok(teachers);
+        var courses = await _courseService.GetAllAsync();
+        return Ok(courses);
     }
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
-    public async Task<ActionResult<TeacherResponse>> GetById(int id)
+    public async Task<ActionResult<CourseResponse>> GetById(int id)
     {
         try
         {
-            var teacher = await _teacherService.GetByIdAsync(id);
-            return Ok(teacher);
+            var course = await _courseService.GetByIdAsync(id);
+            return Ok(course);
         }
         catch (KeyNotFoundException ex)
         {
@@ -43,12 +43,12 @@ public class TeachersController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
-    public async Task<ActionResult<TeacherResponse>> Create([FromBody] CreateTeacherRequest request)
+    public async Task<ActionResult<CourseResponse>> Create([FromBody] CreateCourseRequest request)
     {
         try
         {
-            var teacher = await _teacherService.CreateAsync(request);
-            return CreatedAtAction(nameof(GetById), new { id = teacher.Id }, teacher);
+            var course = await _courseService.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = course.Id }, course);
         }
         catch (InvalidOperationException ex)
         {
@@ -58,12 +58,12 @@ public class TeachersController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
-    public async Task<ActionResult<TeacherResponse>> Update(int id, [FromBody] UpdateTeacherRequest request)
+    public async Task<ActionResult<CourseResponse>> Update(int id, [FromBody] UpdateCourseRequest request)
     {
         try
         {
-            var teacher = await _teacherService.UpdateAsync(id, request);
-            return Ok(teacher);
+            var course = await _courseService.UpdateAsync(id, request);
+            return Ok(course);
         }
         catch (KeyNotFoundException ex)
         {
@@ -81,7 +81,7 @@ public class TeachersController : ControllerBase
     {
         try
         {
-            await _teacherService.DeactivateAsync(id);
+            await _courseService.DeactivateAsync(id);
             return NoContent();
         }
         catch (KeyNotFoundException ex)
