@@ -107,6 +107,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.NoAction);
         });
 
+        modelBuilder.Entity<AttendanceRecord>(entity =>
+        {
+            entity.HasIndex(x => new { x.StudentId, x.ClassSessionId })
+                .IsUnique();
+        });
+
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.Property(x => x.Amount).HasPrecision(18, 2);
@@ -141,5 +147,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 }
+
 
 

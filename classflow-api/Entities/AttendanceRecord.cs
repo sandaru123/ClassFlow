@@ -18,6 +18,10 @@ public class AttendanceRecord
 
     public DateTimeOffset MarkedAt { get; set; }
 
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public DateTimeOffset? UpdatedAt { get; set; }
+
     public string? Notes { get; set; }
 
     public string? MarkedByUserId { get; set; }
