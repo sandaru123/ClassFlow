@@ -1,12 +1,13 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Enrollments;
 using ClassFlow.Api.Entities;
+using ClassFlow.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassFlow.Api.Services;
 
-public class EnrollmentService
+public class EnrollmentService : IEnrollmentService
 {
     private readonly AppDbContext _dbContext;
 
@@ -182,3 +183,4 @@ public class EnrollmentService
         };
     }
 }
+

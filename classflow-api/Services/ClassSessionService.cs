@@ -1,13 +1,14 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.ClassSessions;
 using ClassFlow.Api.Entities;
+using ClassFlow.Api.Interfaces;
 using ClassFlow.Api.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassFlow.Api.Services;
 
-public class ClassSessionService
+public class ClassSessionService : IClassSessionService
 {
     private readonly AppDbContext _dbContext;
 
@@ -224,3 +225,4 @@ public class ClassSessionService
         };
     }
 }
+

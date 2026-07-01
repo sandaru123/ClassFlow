@@ -1,5 +1,5 @@
 ﻿using ClassFlow.Api.DTOs.Auth;
-using ClassFlow.Api.Services;
+using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,9 +10,9 @@ namespace ClassFlow.Api.Controllers;
 [AllowAnonymous]
 public class AuthController : ControllerBase
 {
-    private readonly AuthService _authService;
+    private readonly IAuthService _authService;
 
-    public AuthController(AuthService authService)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
     }
@@ -89,3 +89,4 @@ public class AuthController : ControllerBase
         }
     }
 }
+

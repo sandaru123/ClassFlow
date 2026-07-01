@@ -1,12 +1,13 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Courses;
 using ClassFlow.Api.Entities;
+using ClassFlow.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassFlow.Api.Services;
 
-public class CourseService
+public class CourseService : ICourseService
 {
     private readonly AppDbContext _dbContext;
 
@@ -131,3 +132,4 @@ public class CourseService
         };
     }
 }
+

@@ -1,6 +1,6 @@
-using ClassFlow.Api.Constants;
+﻿using ClassFlow.Api.Constants;
 using ClassFlow.Api.DTOs.ClassSessions;
-using ClassFlow.Api.Services;
+using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +11,9 @@ namespace ClassFlow.Api.Controllers;
 [Authorize]
 public class ClassSessionsController : ControllerBase
 {
-    private readonly ClassSessionService _classSessionService;
+    private readonly IClassSessionService _classSessionService;
 
-    public ClassSessionsController(ClassSessionService classSessionService)
+    public ClassSessionsController(IClassSessionService classSessionService)
     {
         _classSessionService = classSessionService;
     }
@@ -136,3 +136,4 @@ public class ClassSessionsController : ControllerBase
         }
     }
 }
+

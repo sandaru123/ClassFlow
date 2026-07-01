@@ -1,6 +1,6 @@
-using ClassFlow.Api.Constants;
+﻿using ClassFlow.Api.Constants;
 using ClassFlow.Api.DTOs.Enrollments;
-using ClassFlow.Api.Services;
+using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +11,9 @@ namespace ClassFlow.Api.Controllers;
 [Authorize]
 public class EnrollmentsController : ControllerBase
 {
-    private readonly EnrollmentService _enrollmentService;
+    private readonly IEnrollmentService _enrollmentService;
 
-    public EnrollmentsController(EnrollmentService enrollmentService)
+    public EnrollmentsController(IEnrollmentService enrollmentService)
     {
         _enrollmentService = enrollmentService;
     }
@@ -120,3 +120,4 @@ public class EnrollmentsController : ControllerBase
         }
     }
 }
+

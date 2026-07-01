@@ -1,6 +1,6 @@
-using ClassFlow.Api.Constants;
+﻿using ClassFlow.Api.Constants;
 using ClassFlow.Api.DTOs.Courses;
-using ClassFlow.Api.Services;
+using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +11,9 @@ namespace ClassFlow.Api.Controllers;
 [Authorize]
 public class CoursesController : ControllerBase
 {
-    private readonly CourseService _courseService;
+    private readonly ICourseService _courseService;
 
-    public CoursesController(CourseService courseService)
+    public CoursesController(ICourseService courseService)
     {
         _courseService = courseService;
     }
@@ -90,3 +90,4 @@ public class CoursesController : ControllerBase
         }
     }
 }
+

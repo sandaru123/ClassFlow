@@ -1,6 +1,6 @@
-using ClassFlow.Api.Constants;
+﻿using ClassFlow.Api.Constants;
 using ClassFlow.Api.DTOs.Teachers;
-using ClassFlow.Api.Services;
+using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +11,9 @@ namespace ClassFlow.Api.Controllers;
 [Authorize]
 public class TeachersController : ControllerBase
 {
-    private readonly TeacherService _teacherService;
+    private readonly ITeacherService _teacherService;
 
-    public TeachersController(TeacherService teacherService)
+    public TeachersController(ITeacherService teacherService)
     {
         _teacherService = teacherService;
     }
@@ -90,3 +90,4 @@ public class TeachersController : ControllerBase
         }
     }
 }
+

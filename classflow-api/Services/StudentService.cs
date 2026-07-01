@@ -1,11 +1,12 @@
-using ClassFlow.Api.Data;
+﻿using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Students;
 using ClassFlow.Api.Entities;
+using ClassFlow.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassFlow.Api.Services;
 
-public class StudentService
+public class StudentService : IStudentService
 {
     private readonly AppDbContext _dbContext;
 
@@ -163,3 +164,4 @@ public class StudentService
         };
     }
 }
+
