@@ -27,6 +27,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Payment> Payments => Set<Payment>();
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -104,6 +106,34 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.Property(x => x.Amount).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
+
+            entity.Property(x => x.TokenHash)
+                .IsRequired()
+                .HasMaxLength(128);
+
+            entity.Property(x => x.ReplacedByToken)
+                .HasMaxLength(128);
+
+            entity.HasIndex(x => x.TokenHash)
+                .IsUnique();
+
+            entity.HasIndex(x => x.UserId);
+
+            entity.HasIndex(x => x.ExpiresAt);
+
+            entity.HasOne(x => x.User)
+                .WithMany(x => x.RefreshTokens)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

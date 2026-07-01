@@ -12,7 +12,11 @@ public class AuthResponse
 
     public IReadOnlyList<string> Roles { get; set; } = Array.Empty<string>();
 
-    public string Token { get; set; } = string.Empty;
+    public string AccessToken { get; set; } = string.Empty;
 
-    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset AccessTokenExpiresAt { get; set; }
+
+    public string RefreshToken { get; set; } = string.Empty;
+
+    public DateTimeOffset RefreshTokenExpiresAt { get; set; }
 }

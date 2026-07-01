@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClassFlow.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b3c0f2d9c7968c451043ab00461a2eaea28ecd7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1dab92294d3f05da7c65594cbf1618c0d8f93e95")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClassFlow.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClassFlow.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

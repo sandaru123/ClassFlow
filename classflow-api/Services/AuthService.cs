@@ -1,21 +1,30 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ClassFlow.Api.Constants;
+using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Auth;
 using ClassFlow.Api.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ClassFlow.Api.Services;
 
 public class AuthService
 {
+    private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
 
-    public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthService(
+        AppDbContext dbContext,
+        UserManager<ApplicationUser> userManager,
+        IConfiguration configuration)
     {
+        _dbContext = dbContext;
         _userManager = userManager;
         _configuration = configuration;
     }
@@ -31,31 +40,41 @@ public class AuthService
 
         var role = ResolveRegistrationRole(request.Role);
 
-        var user = new ApplicationUser
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
         {
-            UserName = email,
-            Email = email,
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
-            EmailConfirmed = true,
-            IsActive = true,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FirstName = request.FirstName.Trim(),
+                LastName = request.LastName.Trim(),
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
 
-        var createResult = await _userManager.CreateAsync(user, request.Password);
-        if (!createResult.Succeeded)
-        {
-            throw new InvalidOperationException(FormatErrors(createResult.Errors));
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+            {
+                throw new InvalidOperationException(FormatErrors(createResult.Errors));
+            }
+
+            var addRoleResult = await _userManager.AddToRoleAsync(user, role);
+            if (!addRoleResult.Succeeded)
+            {
+                throw new InvalidOperationException(FormatErrors(addRoleResult.Errors));
+            }
+
+            var response = await IssueTokensAsync(user);
+            await transaction.CommitAsync();
+            return response;
         }
-
-        var addRoleResult = await _userManager.AddToRoleAsync(user, role);
-        if (!addRoleResult.Succeeded)
+        catch
         {
-            await _userManager.DeleteAsync(user);
-            throw new InvalidOperationException(FormatErrors(addRoleResult.Errors));
+            await transaction.RollbackAsync();
+            throw;
         }
-
-        return await BuildResponseAsync(user);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
@@ -72,14 +91,104 @@ public class AuthService
             throw new UnauthorizedAccessException("User account is inactive.");
         }
 
-        return await BuildResponseAsync(user);
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var response = await IssueTokensAsync(user);
+            await transaction.CommitAsync();
+            return response;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
-    private async Task<AuthResponse> BuildResponseAsync(ApplicationUser user)
+    public async Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request)
+    {
+        var refreshTokenValue = request.RefreshToken.Trim();
+        if (string.IsNullOrWhiteSpace(refreshTokenValue))
+        {
+            throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var refreshTokenHash = HashToken(refreshTokenValue);
+            var refreshToken = await _dbContext.RefreshTokens
+                .Include(x => x.User)
+                .SingleOrDefaultAsync(x => x.TokenHash == refreshTokenHash);
+
+            ValidateRefreshToken(refreshToken);
+
+            var response = await IssueTokensAsync(refreshToken!.User, refreshToken);
+            await transaction.CommitAsync();
+            return response;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task RevokeRefreshTokenAsync(RevokeRefreshTokenRequest request)
+    {
+        var refreshTokenValue = request.RefreshToken.Trim();
+        if (string.IsNullOrWhiteSpace(refreshTokenValue))
+        {
+            throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var refreshTokenHash = HashToken(refreshTokenValue);
+            var refreshToken = await _dbContext.RefreshTokens
+                .Include(x => x.User)
+                .SingleOrDefaultAsync(x => x.TokenHash == refreshTokenHash);
+
+            ValidateRefreshToken(refreshToken);
+
+            refreshToken!.RevokedAt = DateTimeOffset.UtcNow;
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    private async Task<AuthResponse> IssueTokensAsync(ApplicationUser user, RefreshToken? refreshTokenToRotate = null)
     {
         var roles = await _userManager.GetRolesAsync(user);
-        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(GetJwtExpiryMinutes());
-        var token = CreateToken(user, roles, expiresAt);
+        var now = DateTimeOffset.UtcNow;
+        var accessTokenExpiresAt = now.AddMinutes(GetJwtExpiryMinutes());
+        var accessToken = CreateAccessToken(user, roles, accessTokenExpiresAt);
+
+        var refreshTokenValue = GenerateRefreshTokenValue();
+        var refreshTokenHash = HashToken(refreshTokenValue);
+        var refreshTokenExpiresAt = now.AddDays(GetRefreshTokenExpiryDays());
+
+        if (refreshTokenToRotate is not null)
+        {
+            refreshTokenToRotate.RevokedAt = now;
+            refreshTokenToRotate.ReplacedByToken = refreshTokenHash;
+        }
+
+        _dbContext.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = refreshTokenHash,
+            CreatedAt = now,
+            ExpiresAt = refreshTokenExpiresAt
+        });
+
+        await _dbContext.SaveChangesAsync();
 
         return new AuthResponse
         {
@@ -88,12 +197,14 @@ public class AuthService
             LastName = user.LastName,
             Email = user.Email ?? string.Empty,
             Roles = roles.ToArray(),
-            Token = token,
-            ExpiresAt = expiresAt
+            AccessToken = accessToken,
+            AccessTokenExpiresAt = accessTokenExpiresAt,
+            RefreshToken = refreshTokenValue,
+            RefreshTokenExpiresAt = refreshTokenExpiresAt
         };
     }
 
-    private string CreateToken(ApplicationUser user, IEnumerable<string> roles, DateTimeOffset expiresAt)
+    private string CreateAccessToken(ApplicationUser user, IEnumerable<string> roles, DateTimeOffset expiresAt)
     {
         var jwtSection = _configuration.GetSection("Jwt");
         var issuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is not configured.");
@@ -123,6 +234,18 @@ public class AuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    private static string GenerateRefreshTokenValue()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        return Convert.ToBase64String(bytes);
+    }
+
+    private static string HashToken(string token)
+    {
+        var bytes = Encoding.UTF8.GetBytes(token);
+        return Convert.ToBase64String(SHA256.HashData(bytes));
+    }
+
     private int GetJwtExpiryMinutes()
     {
         var value = _configuration["Jwt:ExpiryMinutes"];
@@ -132,6 +255,36 @@ public class AuthService
         }
 
         return minutes;
+    }
+
+    private int GetRefreshTokenExpiryDays()
+    {
+        var value = _configuration["Jwt:RefreshTokenExpiryDays"];
+        if (!int.TryParse(value, out var days) || days <= 0)
+        {
+            throw new InvalidOperationException("Jwt:RefreshTokenExpiryDays must be a positive number.");
+        }
+
+        return days;
+    }
+
+    private static void ValidateRefreshToken(RefreshToken? refreshToken)
+    {
+        if (refreshToken is null || refreshToken.User is null)
+        {
+            throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+        }
+
+        if (!refreshToken.User.IsActive)
+        {
+            throw new UnauthorizedAccessException("User account is inactive.");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        if (refreshToken.RevokedAt.HasValue || refreshToken.ExpiresAt <= now)
+        {
+            throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+        }
     }
 
     private static string ResolveRegistrationRole(string? requestedRole)
