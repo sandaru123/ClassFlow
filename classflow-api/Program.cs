@@ -74,6 +74,7 @@ builder.Services.AddScoped<IClassSessionService, ClassSessionService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IClassDocumentService, ClassDocumentService>();
+builder.Services.AddScoped<IStudentPortalService, StudentPortalService>();
 
 
 builder.Services.AddControllers();
@@ -119,6 +120,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
 
 
 
