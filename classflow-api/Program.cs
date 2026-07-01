@@ -63,6 +63,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<StudentService>();
+builder.Services.AddScoped<TeacherService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -106,3 +108,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+

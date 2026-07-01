@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "D:\\ClassFlow\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\constants\\approles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\constants\\approles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\helpers\\swagger\\authorizeoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\helpers\\swagger\\authorizeoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -30,7 +30,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 773,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 11,
           "Children": [
             {
               "$type": "Bookmark",
@@ -70,7 +70,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "AppRoles.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Constants\\AppRoles.cs",
               "RelativeDocumentMoniker": "classflow-api\\Constants\\AppRoles.cs",
@@ -83,7 +83,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "AuthorizeOperationFilter.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
               "RelativeDocumentMoniker": "classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
@@ -96,13 +96,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "AuthController.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "classflow-api\\Controllers\\AuthController.cs",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs*",
-              "RelativeToolTip": "classflow-api\\Controllers\\AuthController.cs*",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAAACUAAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "classflow-api\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-01T16:29:31.38Z",
               "EditorCaption": ""
