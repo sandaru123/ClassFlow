@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/classflow-api/">
+    <Project Path="classflow-api/ClassFlow.Api.csproj" />
+  </Folder>
+</Solution>
