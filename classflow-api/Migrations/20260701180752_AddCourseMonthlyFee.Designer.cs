@@ -4,6 +4,7 @@ using ClassFlow.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ClassFlow.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701180752_AddCourseMonthlyFee")]
+    partial class AddCourseMonthlyFee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,9 +223,6 @@ namespace ClassFlow.Api.Migrations
                     b.Property<string>("MeetingPassword")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MeetingProvider")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("MeetingUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -310,14 +310,8 @@ namespace ClassFlow.Api.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<DateTimeOffset>("EnrolledAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
@@ -328,14 +322,11 @@ namespace ClassFlow.Api.Migrations
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("StudentId", "CourseId", "IsActive");
+                    b.HasIndex("StudentId");
 
                     b.ToTable("Enrollments");
                 });
