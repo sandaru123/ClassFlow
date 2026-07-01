@@ -20,5 +20,7 @@ public class Teacher
 
     public DateTimeOffset? UpdatedAt { get; set; }
 
+    public ICollection<Course> Courses { get; set; } = new List<Course>();
+
     public ICollection<ClassSession> ClassSessions { get; set; } = new List<ClassSession>();
 }

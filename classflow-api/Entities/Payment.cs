@@ -10,6 +10,14 @@ public class Payment
 
     public Enrollment Enrollment { get; set; } = null!;
 
+    public int StudentId { get; set; }
+
+    public Student Student { get; set; } = null!;
+
+    public int CourseId { get; set; }
+
+    public Course Course { get; set; } = null!;
+
     public decimal Amount { get; set; }
 
     public DateTimeOffset? DueDate { get; set; }

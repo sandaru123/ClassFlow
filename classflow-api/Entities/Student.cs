@@ -25,4 +25,6 @@ public class Student
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
     public ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
+
+    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }
