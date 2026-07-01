@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "D:\\ClassFlow\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\helpers\\identityseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\helpers\\identityseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\helpers\\swagger\\authorizeoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\helpers\\swagger\\authorizeoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\services\\attendanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\services\\attendanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -43,6 +51,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "IdentitySeeder.cs",
+              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Helpers\\IdentitySeeder.cs",
+              "RelativeDocumentMoniker": "classflow-api\\Helpers\\IdentitySeeder.cs",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Helpers\\IdentitySeeder.cs",
+              "RelativeToolTip": "classflow-api\\Helpers\\IdentitySeeder.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAgwBIAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-01T19:01:51.852Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AuthorizeOperationFilter.cs",
+              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
+              "RelativeDocumentMoniker": "classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
+              "RelativeToolTip": "classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-01T19:01:27.907Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "AttendanceService.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Services\\AttendanceService.cs",
               "RelativeDocumentMoniker": "classflow-api\\Services\\AttendanceService.cs",
@@ -55,7 +89,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\appsettings.json",
               "RelativeDocumentMoniker": "classflow-api\\appsettings.json",
@@ -68,7 +102,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Program.cs",
               "RelativeDocumentMoniker": "classflow-api\\Program.cs",
@@ -81,7 +115,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "IStudentService.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Interfaces\\IStudentService.cs",
               "RelativeDocumentMoniker": "classflow-api\\Interfaces\\IStudentService.cs",
@@ -94,7 +128,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "StudentService.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Services\\StudentService.cs",
               "RelativeDocumentMoniker": "classflow-api\\Services\\StudentService.cs",
@@ -143,7 +177,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "StudentsController.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Controllers\\StudentsController.cs",
               "RelativeDocumentMoniker": "classflow-api\\Controllers\\StudentsController.cs",
@@ -156,7 +190,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "CreateClassSessionRequest.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\DTOs\\ClassSessions\\CreateClassSessionRequest.cs",
               "RelativeDocumentMoniker": "classflow-api\\DTOs\\ClassSessions\\CreateClassSessionRequest.cs",
