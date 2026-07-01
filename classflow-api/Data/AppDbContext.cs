@@ -116,6 +116,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.Property(x => x.Amount).HasPrecision(18, 2);
+            entity.Property(x => x.PaidAmount).HasPrecision(18, 2);
+            entity.Property(x => x.BalanceAmount).HasPrecision(18, 2);
+
+            entity.HasIndex(x => new { x.StudentId, x.CourseId, x.PaymentMonth, x.PaymentYear, x.IsActive });
+
+            entity.Ignore(x => x.Status);
+            entity.Ignore(x => x.Method);
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
@@ -147,6 +154,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 }
+
 
 
 

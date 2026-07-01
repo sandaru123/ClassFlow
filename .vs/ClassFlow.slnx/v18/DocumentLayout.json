@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "D:\\ClassFlow\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\services\\attendanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\services\\attendanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
@@ -39,11 +43,24 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "AttendanceService.cs",
+              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Services\\AttendanceService.cs",
+              "RelativeDocumentMoniker": "classflow-api\\Services\\AttendanceService.cs",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Services\\AttendanceService.cs",
+              "RelativeToolTip": "classflow-api\\Services\\AttendanceService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-01T18:59:58.083Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\appsettings.json",
               "RelativeDocumentMoniker": "classflow-api\\appsettings.json",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\appsettings.json*",
-              "RelativeToolTip": "classflow-api\\appsettings.json*",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\appsettings.json",
+              "RelativeToolTip": "classflow-api\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-07-01T18:51:11.49Z",
@@ -51,7 +68,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Program.cs",
               "RelativeDocumentMoniker": "classflow-api\\Program.cs",
@@ -64,7 +81,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "IStudentService.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Interfaces\\IStudentService.cs",
               "RelativeDocumentMoniker": "classflow-api\\Interfaces\\IStudentService.cs",
@@ -77,7 +94,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "StudentService.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Services\\StudentService.cs",
               "RelativeDocumentMoniker": "classflow-api\\Services\\StudentService.cs",
@@ -126,12 +143,12 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "StudentsController.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Controllers\\StudentsController.cs",
               "RelativeDocumentMoniker": "classflow-api\\Controllers\\StudentsController.cs",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\StudentsController.cs*",
-              "RelativeToolTip": "classflow-api\\Controllers\\StudentsController.cs*",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\StudentsController.cs",
+              "RelativeToolTip": "classflow-api\\Controllers\\StudentsController.cs",
               "ViewState": "AgIAACgAAAAAAAAAAAAIwEAAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-01T18:41:58.829Z",
@@ -139,7 +156,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "CreateClassSessionRequest.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\DTOs\\ClassSessions\\CreateClassSessionRequest.cs",
               "RelativeDocumentMoniker": "classflow-api\\DTOs\\ClassSessions\\CreateClassSessionRequest.cs",
