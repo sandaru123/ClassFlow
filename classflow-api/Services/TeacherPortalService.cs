@@ -16,9 +16,9 @@ public class TeacherPortalService : ITeacherPortalService
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<TeacherCourseResponse>> GetMyCoursesAsync(string? email)
+    public async Task<IReadOnlyList<TeacherCourseResponse>> GetMyCoursesAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
 
         return await _dbContext.Courses
             .AsNoTracking()
@@ -36,9 +36,9 @@ public class TeacherPortalService : ITeacherPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<TeacherClassSessionResponse>> GetMyClassSessionsAsync(string? email)
+    public async Task<IReadOnlyList<TeacherClassSessionResponse>> GetMyClassSessionsAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
 
         return await _dbContext.ClassSessions
             .AsNoTracking()
@@ -48,9 +48,9 @@ public class TeacherPortalService : ITeacherPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<TeacherClassSessionResponse>> GetMyUpcomingClassesAsync(string? email)
+    public async Task<IReadOnlyList<TeacherClassSessionResponse>> GetMyUpcomingClassesAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
         var now = DateTimeOffset.UtcNow;
 
         return await _dbContext.ClassSessions
@@ -61,9 +61,9 @@ public class TeacherPortalService : ITeacherPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<TeacherStudentResponse>> GetMyStudentsAsync(string? email)
+    public async Task<IReadOnlyList<TeacherStudentResponse>> GetMyStudentsAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
 
         return await _dbContext.Enrollments
             .AsNoTracking()
@@ -85,9 +85,9 @@ public class TeacherPortalService : ITeacherPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<TeacherAttendanceResponse>> GetMyAttendanceRecordsAsync(string? email)
+    public async Task<IReadOnlyList<TeacherAttendanceResponse>> GetMyAttendanceRecordsAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
 
         return await _dbContext.AttendanceRecords
             .AsNoTracking()
@@ -109,9 +109,9 @@ public class TeacherPortalService : ITeacherPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<TeacherDocumentResponse>> GetMyDocumentsAsync(string? email)
+    public async Task<IReadOnlyList<TeacherDocumentResponse>> GetMyDocumentsAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
 
         return await _dbContext.ClassDocuments
             .AsNoTracking()
@@ -136,17 +136,16 @@ public class TeacherPortalService : ITeacherPortalService
             .ToListAsync();
     }
 
-    private async Task<Teacher> ResolveTeacherAsync(string? email)
+    private async Task<Teacher> ResolveTeacherAsync(string? applicationUserId)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(applicationUserId))
         {
             throw new InvalidOperationException("The logged-in user is not linked to a teacher record.");
         }
 
-        var normalizedEmail = email.Trim().ToLower();
         var teacher = await _dbContext.Teachers
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+            .SingleOrDefaultAsync(x => x.ApplicationUserId == applicationUserId);
 
         if (teacher is null)
         {

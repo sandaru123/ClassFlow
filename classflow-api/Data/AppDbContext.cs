@@ -1,4 +1,4 @@
-﻿using ClassFlow.Api.Entities;
+using ClassFlow.Api.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,6 +35,15 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Teacher>(entity =>
         {
+            entity.HasIndex(x => x.ApplicationUserId)
+                .IsUnique()
+                .HasFilter("[ApplicationUserId] IS NOT NULL");
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithOne(x => x.Teacher)
+                .HasForeignKey<Teacher>(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasMany(x => x.Courses)
                 .WithOne(x => x.Teacher)
                 .HasForeignKey(x => x.TeacherId)
@@ -48,6 +57,15 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Student>(entity =>
         {
+            entity.HasIndex(x => x.ApplicationUserId)
+                .IsUnique()
+                .HasFilter("[ApplicationUserId] IS NOT NULL");
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithOne(x => x.Student)
+                .HasForeignKey<Student>(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasMany(x => x.Enrollments)
                 .WithOne(x => x.Student)
                 .HasForeignKey(x => x.StudentId)
@@ -154,7 +172,3 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 }
-
-
-
-

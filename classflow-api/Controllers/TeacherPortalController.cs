@@ -58,8 +58,8 @@ public class TeacherPortalController : ControllerBase
     {
         try
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var result = await action(email);
+            var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await action(applicationUserId);
             return Ok(result);
         }
         catch (InvalidOperationException)

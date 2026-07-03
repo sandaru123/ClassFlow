@@ -150,4 +150,11 @@ D:\ClassFlow\classflow-api\bin\Debug\net8.0\Microsoft.OpenApi.dll
 D:\ClassFlow\classflow-api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
 D:\ClassFlow\classflow-api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\ClassFlow\classflow-api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
-D:\ClassFlow\classflow-api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\appsettings.example.json
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\appsettings.json
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\ClassFlow.Api.staticwebassets.endpoints.json
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\ClassFlow.Api.exe
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\ClassFlow.Api.deps.json
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\ClassFlow.Api.runtimeconfig.json
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\ClassFlow.Api.dll
+C:\Users\Dell\AppData\Local\Temp\classflow-teacher-out\ClassFlow.Api.pdb

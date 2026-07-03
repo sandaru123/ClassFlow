@@ -4,6 +4,7 @@ using ClassFlow.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ClassFlow.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701215709_AddStudentLoginAccountLink")]
+    partial class AddStudentLoginAccountLink
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -529,9 +532,6 @@ namespace ClassFlow.Api.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -556,10 +556,6 @@ namespace ClassFlow.Api.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId")
-                        .IsUnique()
-                        .HasFilter("[ApplicationUserId] IS NOT NULL");
 
                     b.ToTable("Teachers");
                 });
@@ -824,16 +820,6 @@ namespace ClassFlow.Api.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("ClassFlow.Api.Entities.Teacher", b =>
-                {
-                    b.HasOne("ClassFlow.Api.Entities.ApplicationUser", "ApplicationUser")
-                        .WithOne("Teacher")
-                        .HasForeignKey("ClassFlow.Api.Entities.Teacher", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ApplicationUser");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -890,8 +876,6 @@ namespace ClassFlow.Api.Migrations
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("Student");
-
-                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("ClassFlow.Api.Entities.ClassSession", b =>

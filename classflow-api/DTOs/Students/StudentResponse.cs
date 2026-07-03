@@ -16,6 +16,8 @@ public class StudentResponse
 
     public DateTime? DateOfBirth { get; set; }
 
+    public bool HasLoginAccount { get; set; }
+
     public bool IsActive { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }

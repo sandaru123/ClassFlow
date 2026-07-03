@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using ClassFlow.Api.DTOs.StudentPortal;
 using ClassFlow.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -58,8 +58,8 @@ public class StudentPortalController : ControllerBase
     {
         try
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var result = await action(email);
+            var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await action(applicationUserId);
             return Ok(result);
         }
         catch (InvalidOperationException)
@@ -68,4 +68,3 @@ public class StudentPortalController : ControllerBase
         }
     }
 }
-

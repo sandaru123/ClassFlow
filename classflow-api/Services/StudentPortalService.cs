@@ -17,9 +17,9 @@ public class StudentPortalService : IStudentPortalService
         _classDocumentService = classDocumentService;
     }
 
-    public async Task<IReadOnlyList<MyCourseResponse>> GetMyCoursesAsync(string? email)
+    public async Task<IReadOnlyList<MyCourseResponse>> GetMyCoursesAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
 
         return await _dbContext.Enrollments
             .AsNoTracking()
@@ -38,9 +38,9 @@ public class StudentPortalService : IStudentPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<MyClassSessionResponse>> GetMyUpcomingClassesAsync(string? email)
+    public async Task<IReadOnlyList<MyClassSessionResponse>> GetMyUpcomingClassesAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
         var courseIds = await GetActiveCourseIdsAsync(student.Id);
         var now = DateTimeOffset.UtcNow;
 
@@ -52,9 +52,9 @@ public class StudentPortalService : IStudentPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<MyClassSessionResponse>> GetMyClassSessionsAsync(string? email)
+    public async Task<IReadOnlyList<MyClassSessionResponse>> GetMyClassSessionsAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
         var courseIds = await GetActiveCourseIdsAsync(student.Id);
 
         return await _dbContext.ClassSessions
@@ -65,9 +65,9 @@ public class StudentPortalService : IStudentPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<MyPaymentResponse>> GetMyPaymentsAsync(string? email)
+    public async Task<IReadOnlyList<MyPaymentResponse>> GetMyPaymentsAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
 
         return await _dbContext.Payments
             .AsNoTracking()
@@ -92,9 +92,9 @@ public class StudentPortalService : IStudentPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<MyAttendanceResponse>> GetMyAttendanceAsync(string? email)
+    public async Task<IReadOnlyList<MyAttendanceResponse>> GetMyAttendanceAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
 
         return await _dbContext.AttendanceRecords
             .AsNoTracking()
@@ -114,9 +114,9 @@ public class StudentPortalService : IStudentPortalService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<MyDocumentResponse>> GetMyAvailableDocumentsAsync(string? email)
+    public async Task<IReadOnlyList<MyDocumentResponse>> GetMyAvailableDocumentsAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
         var courseIds = await GetActiveCourseIdsAsync(student.Id);
 
         var documents = await _dbContext.ClassDocuments
@@ -156,17 +156,16 @@ public class StudentPortalService : IStudentPortalService
         return results;
     }
 
-    private async Task<Student> ResolveStudentAsync(string? email)
+    private async Task<Student> ResolveStudentAsync(string? applicationUserId)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(applicationUserId))
         {
             throw new InvalidOperationException("The logged-in user is not linked to a student record.");
         }
 
-        var normalizedEmail = email.Trim().ToLower();
         var student = await _dbContext.Students
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+            .SingleOrDefaultAsync(x => x.ApplicationUserId == applicationUserId);
 
         if (student is null)
         {
