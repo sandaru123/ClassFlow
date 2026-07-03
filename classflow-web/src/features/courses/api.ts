@@ -32,8 +32,16 @@ export async function updateCourse(
 }
 
 export async function deactivateCourse(id: number): Promise<void> {
+  await apiClient.patch(`/courses/${id}/deactivate`)
+}
+
+export async function reactivateCourse(id: number): Promise<void> {
+  await apiClient.patch(`/courses/${id}/reactivate`)
+}
+
+export async function deleteCourseForever(id: number): Promise<void> {
   try {
-    await apiClient.patch(`/courses/${id}/deactivate`)
+    await apiClient.delete(`/courses/${id}/delete-forever`)
   } catch (error) {
     if (
       axios.isAxiosError(error) &&

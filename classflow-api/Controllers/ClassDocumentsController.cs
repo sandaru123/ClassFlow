@@ -42,6 +42,31 @@ public class ClassDocumentsController : ControllerBase
         }
     }
 
+    [HttpGet("{id:int}/download")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Teacher}")]
+    public async Task<IActionResult> Download(int id)
+    {
+        try
+        {
+            var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole(AppRoles.SuperAdmin) || User.IsInRole(AppRoles.Admin);
+            var download = await _classDocumentService.DownloadAsync(id, applicationUserId, isAdmin);
+            return File(download.Content, download.ContentType, download.FileName);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (FileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+    }
+
     [HttpGet("session/{classSessionId:int}")]
     [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Teacher}")]
     public async Task<ActionResult<IReadOnlyList<ClassDocumentResponse>>> GetByClassSessionId(int classSessionId)
@@ -101,6 +126,40 @@ public class ClassDocumentsController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:int}/reactivate")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Teacher}")]
+    public async Task<IActionResult> Reactivate(int id)
+    {
+        try
+        {
+            await _classDocumentService.ReactivateAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}/delete-forever")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Teacher}")]
+    public async Task<IActionResult> DeleteForever(int id)
+    {
+        try
+        {
+            await _classDocumentService.DeleteForeverAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
     }
 }

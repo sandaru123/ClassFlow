@@ -17,4 +17,8 @@ public interface IEnrollmentService
     Task<EnrollmentResponse> UpdateAsync(int id, UpdateEnrollmentRequest request);
 
     Task DeactivateAsync(int id);
+
+    Task ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
 }

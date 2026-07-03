@@ -71,3 +71,14 @@ export async function cancelPayment(id: number): Promise<PaymentResponse> {
   const response = await apiClient.patch<PaymentResponse>(`/payments/${id}/cancel`)
   return response.data
 }
+
+export async function reactivatePayment(id: number): Promise<PaymentResponse> {
+  const response = await apiClient.patch<PaymentResponse>(
+    `/payments/${id}/reactivate`,
+  )
+  return response.data
+}
+
+export async function deletePaymentForever(id: number): Promise<void> {
+  await apiClient.delete(`/payments/${id}/delete-forever`)
+}

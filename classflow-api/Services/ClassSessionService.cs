@@ -10,6 +10,8 @@ namespace ClassFlow.Api.Services;
 
 public class ClassSessionService : IClassSessionService
 {
+    private const string DeleteConflictMessage = "This record cannot be permanently deleted because it has related data. Please deactivate it instead.";
+
     private readonly AppDbContext _dbContext;
 
     public ClassSessionService(AppDbContext dbContext)
@@ -60,7 +62,7 @@ public class ClassSessionService : IClassSessionService
 
         return await _dbContext.ClassSessions
             .AsNoTracking()
-            .Where(x => x.StartDateTime >= now && x.Status != ClassSessionStatus.Cancelled)
+            .Where(x => x.IsActive && x.StartDateTime >= now && x.Status != ClassSessionStatus.Cancelled)
             .OrderBy(x => x.StartDateTime)
             .Select(MapToResponseExpression())
             .ToListAsync();
@@ -85,6 +87,7 @@ public class ClassSessionService : IClassSessionService
             MeetingUrl = NormalizeOptionalValue(request.MeetingUrl),
             MeetingPassword = NormalizeOptionalValue(request.MeetingPassword),
             Status = request.Status,
+            IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -118,6 +121,7 @@ public class ClassSessionService : IClassSessionService
         classSession.MeetingUrl = NormalizeOptionalValue(request.MeetingUrl);
         classSession.MeetingPassword = NormalizeOptionalValue(request.MeetingPassword);
         classSession.Status = request.Status;
+        classSession.IsActive = request.IsActive;
         classSession.UpdatedAt = DateTimeOffset.UtcNow;
 
         await _dbContext.SaveChangesAsync();
@@ -138,9 +142,10 @@ public class ClassSessionService : IClassSessionService
             throw new InvalidOperationException("Completed class sessions cannot be cancelled.");
         }
 
-        if (classSession.Status != ClassSessionStatus.Cancelled)
+        if (classSession.Status != ClassSessionStatus.Cancelled || classSession.IsActive)
         {
             classSession.Status = ClassSessionStatus.Cancelled;
+            classSession.IsActive = false;
             classSession.UpdatedAt = DateTimeOffset.UtcNow;
             await _dbContext.SaveChangesAsync();
         }
@@ -161,6 +166,11 @@ public class ClassSessionService : IClassSessionService
             throw new InvalidOperationException("Cancelled class sessions cannot be marked as completed.");
         }
 
+        if (!classSession.IsActive)
+        {
+            throw new InvalidOperationException("Inactive class sessions cannot be marked as completed.");
+        }
+
         if (classSession.Status != ClassSessionStatus.Completed)
         {
             classSession.Status = ClassSessionStatus.Completed;
@@ -169,6 +179,50 @@ public class ClassSessionService : IClassSessionService
         }
 
         return await GetByIdAsync(id);
+    }
+
+    public async Task<ClassSessionResponse> ReactivateAsync(int id)
+    {
+        var classSession = await _dbContext.ClassSessions.SingleOrDefaultAsync(x => x.Id == id);
+        if (classSession is null)
+        {
+            throw new KeyNotFoundException($"Class session with id {id} was not found.");
+        }
+
+        if (!classSession.IsActive)
+        {
+            classSession.IsActive = true;
+
+            if (classSession.Status == ClassSessionStatus.Cancelled)
+            {
+                classSession.Status = ClassSessionStatus.Scheduled;
+            }
+
+            classSession.UpdatedAt = DateTimeOffset.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        return await GetByIdAsync(id);
+    }
+
+    public async Task DeleteForeverAsync(int id)
+    {
+        var classSession = await _dbContext.ClassSessions.SingleOrDefaultAsync(x => x.Id == id);
+        if (classSession is null)
+        {
+            throw new KeyNotFoundException($"Class session with id {id} was not found.");
+        }
+
+        var hasRelatedData = await _dbContext.ClassDocuments.AnyAsync(x => x.ClassSessionId == id)
+            || await _dbContext.AttendanceRecords.AnyAsync(x => x.ClassSessionId == id);
+
+        if (hasRelatedData)
+        {
+            throw new InvalidOperationException(DeleteConflictMessage);
+        }
+
+        _dbContext.ClassSessions.Remove(classSession);
+        await _dbContext.SaveChangesAsync();
     }
 
     private async Task EnsureCourseExistsAsync(int courseId)
@@ -208,9 +262,13 @@ public class ClassSessionService : IClassSessionService
         {
             Id = classSession.Id,
             CourseId = classSession.CourseId,
-            CourseName = classSession.Course.Name,
+            CourseName = classSession.Course != null
+                ? classSession.Course.Name
+                : "Unknown Course",
             TeacherId = classSession.TeacherId,
-            TeacherName = (classSession.Teacher.FirstName + " " + classSession.Teacher.LastName).Trim(),
+            TeacherName = classSession.Teacher != null
+                ? (((classSession.Teacher.FirstName ?? string.Empty) + " " + (classSession.Teacher.LastName ?? string.Empty)).Trim())
+                : "Unassigned Teacher",
             Title = classSession.Title,
             Description = classSession.Description,
             StartTime = classSession.StartDateTime,
@@ -220,6 +278,7 @@ public class ClassSessionService : IClassSessionService
             MeetingUrl = classSession.MeetingUrl,
             MeetingPassword = classSession.MeetingPassword,
             Status = classSession.Status,
+            IsActive = classSession.IsActive,
             CreatedAt = classSession.CreatedAt,
             UpdatedAt = classSession.UpdatedAt
         };

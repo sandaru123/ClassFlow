@@ -54,3 +54,11 @@ export async function updateEnrollment(
 export async function deactivateEnrollment(id: number): Promise<void> {
   await apiClient.patch(`/enrollments/${id}/deactivate`)
 }
+
+export async function reactivateEnrollment(id: number): Promise<void> {
+  await apiClient.patch(`/enrollments/${id}/reactivate`)
+}
+
+export async function deleteEnrollmentForever(id: number): Promise<void> {
+  await apiClient.delete(`/enrollments/${id}/delete-forever`)
+}

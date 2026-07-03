@@ -19,7 +19,11 @@ public interface IClassDocumentService
 
     Task DeactivateAsync(int id);
 
-    Task<DocumentDownloadResult> DownloadAsync(int documentId);
+    Task ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
+
+    Task<DocumentDownloadResult> DownloadAsync(int documentId, string? applicationUserId, bool isAdmin);
 
     Task<bool> CanStudentAccessDocumentAsync(int documentId, int studentId);
 }

@@ -135,5 +135,43 @@ public class ClassSessionsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPatch("{id:int}/reactivate")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Teacher}")]
+    public async Task<ActionResult<ClassSessionResponse>> Reactivate(int id)
+    {
+        try
+        {
+            var classSession = await _classSessionService.ReactivateAsync(id);
+            return Ok(classSession);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}/delete-forever")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Teacher}")]
+    public async Task<IActionResult> DeleteForever(int id)
+    {
+        try
+        {
+            await _classSessionService.DeleteForeverAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
 }
 

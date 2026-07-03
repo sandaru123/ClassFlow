@@ -196,6 +196,37 @@ public class PaymentService : IPaymentService
         return await GetByIdAsync(id);
     }
 
+    public async Task<PaymentResponse> ReactivateAsync(int id)
+    {
+        var payment = await _dbContext.Payments.SingleOrDefaultAsync(x => x.Id == id);
+        if (payment is null)
+        {
+            throw new KeyNotFoundException($"Payment with id {id} was not found.");
+        }
+
+        if (!payment.IsActive || payment.PaymentStatus == PaymentStatus.Cancelled)
+        {
+            payment.IsActive = true;
+            payment.PaymentStatus = NormalizeStatus(payment.Amount, payment.PaidAmount);
+            payment.UpdatedAt = DateTimeOffset.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        return await GetByIdAsync(id);
+    }
+
+    public async Task DeleteForeverAsync(int id)
+    {
+        var payment = await _dbContext.Payments.SingleOrDefaultAsync(x => x.Id == id);
+        if (payment is null)
+        {
+            throw new KeyNotFoundException($"Payment with id {id} was not found.");
+        }
+
+        _dbContext.Payments.Remove(payment);
+        await _dbContext.SaveChangesAsync();
+    }
+
     private async Task EnsureStudentExistsAsync(int studentId)
     {
         var exists = await _dbContext.Students.AnyAsync(x => x.Id == studentId);

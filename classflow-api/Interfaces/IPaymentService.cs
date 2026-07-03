@@ -21,4 +21,8 @@ public interface IPaymentService
     Task<PaymentResponse> RecordPaymentAsync(int id, RecordPaymentRequest request);
 
     Task<PaymentResponse> CancelAsync(int id);
+
+    Task<PaymentResponse> ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
 }

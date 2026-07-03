@@ -19,4 +19,8 @@ public interface IClassSessionService
     Task<ClassSessionResponse> CancelAsync(int id);
 
     Task<ClassSessionResponse> MarkCompletedAsync(int id);
+
+    Task<ClassSessionResponse> ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
 }

@@ -10,6 +10,8 @@ namespace ClassFlow.Api.Services;
 
 public class StudentService : IStudentService
 {
+    private const string DeleteConflictMessage = "This record cannot be permanently deleted because it has related data. Please deactivate it instead.";
+
     private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -236,6 +238,94 @@ public class StudentService : IStudentService
             }
 
             await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task ReactivateAsync(int id)
+    {
+        var student = await _dbContext.Students
+            .Include(x => x.ApplicationUser)
+            .SingleOrDefaultAsync(x => x.Id == id);
+
+        if (student is null)
+        {
+            throw new KeyNotFoundException($"Student with id {id} was not found.");
+        }
+
+        if (student.IsActive)
+        {
+            return;
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            student.IsActive = true;
+            student.UpdatedAt = DateTimeOffset.UtcNow;
+
+            if (student.ApplicationUser is not null)
+            {
+                student.ApplicationUser.IsActive = true;
+                student.ApplicationUser.UpdatedAt = DateTimeOffset.UtcNow;
+
+                var updateUserResult = await _userManager.UpdateAsync(student.ApplicationUser);
+                if (!updateUserResult.Succeeded)
+                {
+                    throw new InvalidOperationException(FormatErrors(updateUserResult.Errors));
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task DeleteForeverAsync(int id)
+    {
+        var student = await _dbContext.Students
+            .Include(x => x.ApplicationUser)
+            .SingleOrDefaultAsync(x => x.Id == id);
+
+        if (student is null)
+        {
+            throw new KeyNotFoundException($"Student with id {id} was not found.");
+        }
+
+        var hasRelatedData = await _dbContext.Enrollments.AnyAsync(x => x.StudentId == id)
+            || await _dbContext.AttendanceRecords.AnyAsync(x => x.StudentId == id)
+            || await _dbContext.Payments.AnyAsync(x => x.StudentId == id);
+
+        if (hasRelatedData)
+        {
+            throw new InvalidOperationException(DeleteConflictMessage);
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            _dbContext.Students.Remove(student);
+            await _dbContext.SaveChangesAsync();
+
+            if (student.ApplicationUser is not null)
+            {
+                var deleteUserResult = await _userManager.DeleteAsync(student.ApplicationUser);
+                if (!deleteUserResult.Succeeded)
+                {
+                    throw new InvalidOperationException(FormatErrors(deleteUserResult.Errors));
+                }
+            }
+
             await transaction.CommitAsync();
         }
         catch

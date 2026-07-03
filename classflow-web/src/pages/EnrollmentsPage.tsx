@@ -5,9 +5,11 @@ import { getCourses } from '../features/courses/api'
 import type { CourseResponse } from '../features/courses/types'
 import {
   createEnrollment,
+  deleteEnrollmentForever,
   deactivateEnrollment,
   getEnrollmentById,
   getEnrollments,
+  reactivateEnrollment,
   updateEnrollment,
 } from '../features/enrollments/api'
 import type {
@@ -111,6 +113,10 @@ function getStatusBadgeClasses(status: EnrollmentStatus) {
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 409) {
+      return 'This record cannot be permanently deleted because it has related data. Please deactivate it instead.'
+    }
+
     return error.response?.data?.message ?? fallbackMessage
   }
 
@@ -331,6 +337,9 @@ function EnrollmentFormModal({
 export function EnrollmentsPage() {
   const queryClient = useQueryClient()
   const [searchValue, setSearchValue] = useState('')
+  const [recordFilter, setRecordFilter] = useState<'all' | 'active' | 'inactive'>(
+    'all',
+  )
   const [formMode, setFormMode] = useState<EnrollmentFormMode>('create')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<number | null>(
@@ -401,19 +410,47 @@ export function EnrollmentsPage() {
     },
   })
 
+  const reactivateEnrollmentMutation = useMutation({
+    mutationFn: reactivateEnrollment,
+    onSuccess: async (_, enrollmentId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['enrollments'] }),
+        queryClient.invalidateQueries({ queryKey: ['enrollments', enrollmentId] }),
+      ])
+    },
+  })
+
+  const deleteEnrollmentForeverMutation = useMutation({
+    mutationFn: deleteEnrollmentForever,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+    },
+  })
+
   const filteredEnrollments = useMemo(() => {
     const enrollments = enrollmentsQuery.data ?? []
     const normalizedSearch = searchValue.trim().toLowerCase()
 
     if (!normalizedSearch) {
-      return enrollments
+      return enrollments.filter((enrollment) =>
+        recordFilter === 'all'
+          ? true
+          : recordFilter === 'active'
+            ? enrollment.isActive
+            : !enrollment.isActive,
+      )
     }
 
     return enrollments.filter((enrollment) =>
+      (recordFilter === 'all'
+        ? true
+        : recordFilter === 'active'
+          ? enrollment.isActive
+          : !enrollment.isActive) &&
       [enrollment.studentName, enrollment.courseName, getStatusLabel(enrollment.status)]
         .some((field) => field.toLowerCase().includes(normalizedSearch)),
     )
-  }, [enrollmentsQuery.data, searchValue])
+  }, [enrollmentsQuery.data, recordFilter, searchValue])
 
   function openCreateModal() {
     setFormMode('create')
@@ -506,6 +543,45 @@ export function EnrollmentsPage() {
     }
   }
 
+  async function handleReactivate(enrollment: EnrollmentResponse) {
+    const shouldReactivate = window.confirm(
+      `Reactivate the enrollment for ${enrollment.studentName} in ${enrollment.courseName}?`,
+    )
+
+    if (!shouldReactivate) {
+      return
+    }
+
+    try {
+      await reactivateEnrollmentMutation.mutateAsync(enrollment.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to reactivate the selected enrollment.'),
+      )
+    }
+  }
+
+  async function handleDeleteForever(enrollment: EnrollmentResponse) {
+    const shouldDelete = window.confirm(
+      `Delete the enrollment for ${enrollment.studentName} in ${enrollment.courseName} forever? This cannot be undone.`,
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      await deleteEnrollmentForeverMutation.mutateAsync(enrollment.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(
+          error,
+          'Unable to permanently delete the selected enrollment.',
+        ),
+      )
+    }
+  }
+
   const isSubmitting =
     createEnrollmentMutation.isPending || updateEnrollmentMutation.isPending
 
@@ -544,19 +620,38 @@ export function EnrollmentsPage() {
                 Enrollment Directory
               </p>
               <p className="mt-1 text-sm text-slate-500">
-                Filter by student name, course name, or status.
+                Filter by student name, course name, status, and record state.
               </p>
             </div>
 
-            <label className="block w-full md:max-w-sm">
-              <span className="sr-only">Search enrollments</span>
-              <input
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search enrollments"
-                value={searchValue}
-              />
-            </label>
+            <div className="flex w-full flex-col gap-3 md:max-w-2xl md:flex-row">
+              <label className="block md:w-44">
+                <span className="sr-only">Filter enrollments by state</span>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                  onChange={(event) =>
+                    setRecordFilter(
+                      event.target.value as 'all' | 'active' | 'inactive',
+                    )
+                  }
+                  value={recordFilter}
+                >
+                  <option value="all">All records</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+
+              <label className="block flex-1">
+                <span className="sr-only">Search enrollments</span>
+                <input
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="Search enrollments"
+                  value={searchValue}
+                />
+              </label>
+            </div>
           </div>
         </div>
 
@@ -698,6 +793,25 @@ export function EnrollmentsPage() {
                             type="button"
                           >
                             {enrollment.isActive ? 'Deactivate' : 'Inactive'}
+                          </button>
+                          <button
+                            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={
+                              enrollment.isActive ||
+                              reactivateEnrollmentMutation.isPending
+                            }
+                            onClick={() => void handleReactivate(enrollment)}
+                            type="button"
+                          >
+                            Reactivate
+                          </button>
+                          <button
+                            className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={deleteEnrollmentForeverMutation.isPending}
+                            onClick={() => void handleDeleteForever(enrollment)}
+                            type="button"
+                          >
+                            Delete Forever
                           </button>
                         </div>
                       </td>

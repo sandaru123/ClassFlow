@@ -224,6 +224,9 @@ namespace ClassFlow.Api.Migrations
                     b.Property<DateTimeOffset>("EndDateTime")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("MeetingPassword")
                         .HasColumnType("nvarchar(max)");
 

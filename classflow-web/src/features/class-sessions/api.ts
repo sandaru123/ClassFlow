@@ -71,3 +71,16 @@ export async function completeClassSession(
   )
   return response.data
 }
+
+export async function reactivateClassSession(
+  id: number,
+): Promise<ClassSessionResponse> {
+  const response = await apiClient.patch<ClassSessionResponse>(
+    `/class-sessions/${id}/reactivate`,
+  )
+  return response.data
+}
+
+export async function deleteClassSessionForever(id: number): Promise<void> {
+  await apiClient.delete(`/class-sessions/${id}/delete-forever`)
+}

@@ -27,6 +27,8 @@ public class TeacherPortalService : ITeacherPortalService
             .Select(x => new TeacherCourseResponse
             {
                 CourseId = x.Id,
+                TeacherId = teacher.Id,
+                TeacherName = (teacher.FirstName + " " + teacher.LastName).Trim(),
                 CourseName = x.Name,
                 Description = x.Description,
                 MonthlyFee = x.MonthlyFee,

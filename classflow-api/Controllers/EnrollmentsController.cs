@@ -119,5 +119,43 @@ public class EnrollmentsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpPatch("{id:int}/reactivate")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
+    public async Task<IActionResult> Reactivate(int id)
+    {
+        try
+        {
+            await _enrollmentService.ReactivateAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}/delete-forever")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
+    public async Task<IActionResult> DeleteForever(int id)
+    {
+        try
+        {
+            await _enrollmentService.DeleteForeverAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
 }
 

@@ -34,6 +34,8 @@ public class ClassSession
 
     public string? Notes { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }

@@ -37,4 +37,6 @@ public class UpdateClassSessionRequest
     public string? MeetingPassword { get; set; }
 
     public ClassSessionStatus Status { get; set; } = ClassSessionStatus.Scheduled;
+
+    public bool IsActive { get; set; } = true;
 }

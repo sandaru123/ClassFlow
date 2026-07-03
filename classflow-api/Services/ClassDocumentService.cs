@@ -151,15 +151,63 @@ public class ClassDocumentService : IClassDocumentService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<DocumentDownloadResult> DownloadAsync(int documentId)
+    public async Task ReactivateAsync(int id)
+    {
+        var document = await _dbContext.ClassDocuments.SingleOrDefaultAsync(x => x.Id == id);
+        if (document is null)
+        {
+            throw new KeyNotFoundException($"Class document with id {id} was not found.");
+        }
+
+        if (document.IsActive)
+        {
+            return;
+        }
+
+        document.IsActive = true;
+        document.UpdatedAt = DateTimeOffset.UtcNow;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteForeverAsync(int id)
+    {
+        var document = await _dbContext.ClassDocuments.SingleOrDefaultAsync(x => x.Id == id);
+        if (document is null)
+        {
+            throw new KeyNotFoundException($"Class document with id {id} was not found.");
+        }
+
+        DeletePhysicalFileIfSafe(document.StoragePath);
+
+        _dbContext.ClassDocuments.Remove(document);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<DocumentDownloadResult> DownloadAsync(int documentId, string? applicationUserId, bool isAdmin)
     {
         var document = await _dbContext.ClassDocuments
             .AsNoTracking()
+            .Include(x => x.ClassSession)
+            .ThenInclude(x => x.Teacher)
             .SingleOrDefaultAsync(x => x.Id == documentId);
 
         if (document is null)
         {
             throw new KeyNotFoundException($"Class document with id {documentId} was not found.");
+        }
+
+        if (!isAdmin)
+        {
+            if (string.IsNullOrWhiteSpace(applicationUserId))
+            {
+                throw new UnauthorizedAccessException("You are not authorized to download this document.");
+            }
+
+            var isAssignedTeacher = document.ClassSession.Teacher?.ApplicationUserId == applicationUserId;
+            if (!isAssignedTeacher)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to download this document.");
+            }
         }
 
         if (string.IsNullOrWhiteSpace(document.StoragePath) || !File.Exists(document.StoragePath))
@@ -261,6 +309,27 @@ public class ClassDocumentService : IClassDocumentService
             : _environment.WebRootPath;
 
         return Path.Combine(root, "uploads", "class-documents");
+    }
+
+    private void DeletePhysicalFileIfSafe(string? storagePath)
+    {
+        if (string.IsNullOrWhiteSpace(storagePath))
+        {
+            return;
+        }
+
+        var uploadsRoot = Path.GetFullPath(GetUploadsRoot());
+        var fullFilePath = Path.GetFullPath(storagePath);
+
+        if (!fullFilePath.StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (File.Exists(fullFilePath))
+        {
+            File.Delete(fullFilePath);
+        }
     }
 
     private static void ValidateFile(IFormFile file)

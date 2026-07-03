@@ -2,6 +2,7 @@
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Enrollments;
 using ClassFlow.Api.Entities;
+using ClassFlow.Api.Enums;
 using ClassFlow.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,8 @@ namespace ClassFlow.Api.Services;
 
 public class EnrollmentService : IEnrollmentService
 {
+    private const string DeleteConflictMessage = "This record cannot be permanently deleted because it has related data. Please deactivate it instead.";
+
     private readonly AppDbContext _dbContext;
 
     public EnrollmentService(AppDbContext dbContext)
@@ -131,6 +134,45 @@ public class EnrollmentService : IEnrollmentService
 
         enrollment.IsActive = false;
         enrollment.UpdatedAt = DateTimeOffset.UtcNow;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task ReactivateAsync(int id)
+    {
+        var enrollment = await _dbContext.Enrollments.SingleOrDefaultAsync(x => x.Id == id);
+        if (enrollment is null)
+        {
+            throw new KeyNotFoundException($"Enrollment with id {id} was not found.");
+        }
+
+        if (enrollment.IsActive)
+        {
+            return;
+        }
+
+        await EnsureNoDuplicateActiveEnrollmentAsync(enrollment.StudentId, enrollment.CourseId, id);
+
+        enrollment.IsActive = true;
+        enrollment.Status = EnrollmentStatus.Active;
+        enrollment.UpdatedAt = DateTimeOffset.UtcNow;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteForeverAsync(int id)
+    {
+        var enrollment = await _dbContext.Enrollments.SingleOrDefaultAsync(x => x.Id == id);
+        if (enrollment is null)
+        {
+            throw new KeyNotFoundException($"Enrollment with id {id} was not found.");
+        }
+
+        var hasRelatedData = await _dbContext.Payments.AnyAsync(x => x.EnrollmentId == id);
+        if (hasRelatedData)
+        {
+            throw new InvalidOperationException(DeleteConflictMessage);
+        }
+
+        _dbContext.Enrollments.Remove(enrollment);
         await _dbContext.SaveChangesAsync();
     }
 

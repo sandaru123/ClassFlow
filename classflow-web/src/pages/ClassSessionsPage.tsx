@@ -1,7 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
-import { getClassSessions, getClassSessionById, createClassSession, updateClassSession, cancelClassSession, completeClassSession } from '../features/class-sessions/api'
+import {
+  getClassSessions,
+  getClassSessionById,
+  createClassSession,
+  updateClassSession,
+  cancelClassSession,
+  completeClassSession,
+  reactivateClassSession,
+  deleteClassSessionForever,
+} from '../features/class-sessions/api'
 import type {
   ClassMode,
   ClassSessionResponse,
@@ -15,6 +24,7 @@ import { getTeachers } from '../features/teachers/api'
 import type { TeacherResponse } from '../features/teachers/types'
 
 type ClassSessionFormMode = 'create' | 'edit'
+type RecordFilter = 'all' | 'active' | 'inactive'
 
 type ClassSessionFormValues = {
   courseId: string
@@ -95,11 +105,16 @@ function buildPayload(
     meetingUrl: toOptionalString(values.meetingUrl),
     meetingPassword: toOptionalString(values.meetingPassword),
     status: values.status,
+    isActive: true,
   }
 }
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 409) {
+      return 'This record cannot be permanently deleted because it has related data. Please deactivate it instead.'
+    }
+
     return error.response?.data?.message ?? fallbackMessage
   }
 
@@ -449,6 +464,7 @@ function ClassSessionFormModal({
 export function ClassSessionsPage() {
   const queryClient = useQueryClient()
   const [searchValue, setSearchValue] = useState('')
+  const [recordFilter, setRecordFilter] = useState<RecordFilter>('all')
   const [formMode, setFormMode] = useState<ClassSessionFormMode>('create')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null)
@@ -527,24 +543,55 @@ export function ClassSessionsPage() {
     },
   })
 
+  const reactivateClassSessionMutation = useMutation({
+    mutationFn: reactivateClassSession,
+    onSuccess: async (_, sessionId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['class-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['class-sessions', sessionId] }),
+      ])
+    },
+  })
+
+  const deleteClassSessionForeverMutation = useMutation({
+    mutationFn: deleteClassSessionForever,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['class-sessions'] })
+    },
+  })
+
   const filteredSessions = useMemo(() => {
     const sessions = classSessionsQuery.data ?? []
     const normalizedSearch = searchValue.trim().toLowerCase()
 
     if (!normalizedSearch) {
-      return sessions
+      return sessions.filter((session) =>
+        recordFilter === 'all'
+          ? true
+          : recordFilter === 'active'
+            ? session.isActive
+            : !session.isActive,
+      )
     }
 
-    return sessions.filter((session) =>
-      [
+    return sessions.filter((session) => {
+      if (recordFilter === 'active' && !session.isActive) {
+        return false
+      }
+
+      if (recordFilter === 'inactive' && session.isActive) {
+        return false
+      }
+
+      return [
         session.title,
         session.courseName,
         session.teacherName,
         getStatusLabel(session.status),
         getClassModeLabel(session.classMode),
-      ].some((field) => field.toLowerCase().includes(normalizedSearch)),
-    )
-  }, [classSessionsQuery.data, searchValue])
+      ].some((field) => field.toLowerCase().includes(normalizedSearch))
+    })
+  }, [classSessionsQuery.data, recordFilter, searchValue])
 
   function openCreateModal() {
     setFormMode('create')
@@ -630,7 +677,10 @@ export function ClassSessionsPage() {
 
       await updateClassSessionMutation.mutateAsync({
         id: selectedSessionId,
-        payload: buildPayload(formValues),
+        payload: {
+          ...buildPayload(formValues),
+          isActive: selectedSessionQuery.data.isActive,
+        },
       })
     } catch (error) {
       setFormErrorMessage(
@@ -665,6 +715,43 @@ export function ClassSessionsPage() {
     } catch (error) {
       window.alert(
         getErrorMessage(error, 'Unable to mark the selected class session as completed.'),
+      )
+    }
+  }
+
+  async function handleReactivate(session: ClassSessionResponse) {
+    const shouldReactivate = window.confirm(`Reactivate "${session.title}"?`)
+
+    if (!shouldReactivate) {
+      return
+    }
+
+    try {
+      await reactivateClassSessionMutation.mutateAsync(session.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to reactivate the selected class session.'),
+      )
+    }
+  }
+
+  async function handleDeleteForever(session: ClassSessionResponse) {
+    const shouldDelete = window.confirm(
+      `Delete "${session.title}" forever? This cannot be undone.`,
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      await deleteClassSessionForeverMutation.mutateAsync(session.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(
+          error,
+          'Unable to permanently delete the selected class session.',
+        ),
       )
     }
   }
@@ -705,19 +792,34 @@ export function ClassSessionsPage() {
             <div>
               <p className="text-sm font-semibold text-slate-950">Session Directory</p>
               <p className="mt-1 text-sm text-slate-500">
-                Filter by title, course, teacher, class mode, or status.
+                Filter by title, course, teacher, class mode, status, or record state.
               </p>
             </div>
 
-            <label className="block w-full md:max-w-sm">
-              <span className="sr-only">Search class sessions</span>
-              <input
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search class sessions"
-                value={searchValue}
-              />
-            </label>
+            <div className="flex w-full flex-col gap-3 md:max-w-xl md:flex-row">
+              <label className="block md:w-40">
+                <span className="sr-only">Filter class sessions by record state</span>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                  onChange={(event) => setRecordFilter(event.target.value as RecordFilter)}
+                  value={recordFilter}
+                >
+                  <option value="all">All records</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+
+              <label className="block flex-1">
+                <span className="sr-only">Search class sessions</span>
+                <input
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="Search class sessions"
+                  value={searchValue}
+                />
+              </label>
+            </div>
           </div>
         </div>
 
@@ -755,16 +857,16 @@ export function ClassSessionsPage() {
               Empty State
             </span>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
-              {searchValue
+              {searchValue || recordFilter !== 'all'
                 ? 'No class sessions matched your search'
                 : 'No class sessions found'}
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              {searchValue
-                ? 'Try a different title, course, teacher, class mode, or status.'
+              {searchValue || recordFilter !== 'all'
+                ? 'Try a different title, course, teacher, class mode, status, or record state.'
                 : 'Create the first class session to start managing the schedule.'}
             </p>
-            {!searchValue ? (
+            {!searchValue && recordFilter === 'all' ? (
               <button
                 className="mt-6 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-600"
                 onClick={openCreateModal}
@@ -829,13 +931,24 @@ export function ClassSessionsPage() {
                         )}
                       </td>
                       <td className="px-6 py-5">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getStatusBadgeClasses(
-                            session.status,
-                          )}`}
-                        >
-                          {getStatusLabel(session.status)}
-                        </span>
+                        <div className="flex flex-col gap-2">
+                          <span
+                            className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getStatusBadgeClasses(
+                              session.status,
+                            )}`}
+                          >
+                            {getStatusLabel(session.status)}
+                          </span>
+                          <span
+                            className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                              session.isActive
+                                ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                                : 'bg-slate-100 text-slate-700 ring-slate-200'
+                            }`}
+                          >
+                            {session.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-2">
@@ -845,6 +958,14 @@ export function ClassSessionsPage() {
                             type="button"
                           >
                             Edit
+                          </button>
+                          <button
+                            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={session.isActive || reactivateClassSessionMutation.isPending}
+                            onClick={() => void handleReactivate(session)}
+                            type="button"
+                          >
+                            Reactivate
                           </button>
                           <button
                             className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -867,6 +988,14 @@ export function ClassSessionsPage() {
                             type="button"
                           >
                             {session.status === 2 ? 'Completed' : 'Mark Completed'}
+                          </button>
+                          <button
+                            className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={deleteClassSessionForeverMutation.isPending}
+                            onClick={() => void handleDeleteForever(session)}
+                            type="button"
+                          >
+                            Delete Forever
                           </button>
                         </div>
                       </td>

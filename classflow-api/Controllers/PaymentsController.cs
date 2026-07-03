@@ -146,4 +146,34 @@ public class PaymentsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpPatch("{id:int}/reactivate")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
+    public async Task<ActionResult<PaymentResponse>> Reactivate(int id)
+    {
+        try
+        {
+            var payment = await _paymentService.ReactivateAsync(id);
+            return Ok(payment);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}/delete-forever")]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
+    public async Task<IActionResult> DeleteForever(int id)
+    {
+        try
+        {
+            await _paymentService.DeleteForeverAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

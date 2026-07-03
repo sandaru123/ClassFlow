@@ -9,6 +9,8 @@ namespace ClassFlow.Api.Services;
 
 public class CourseService : ICourseService
 {
+    private const string DeleteConflictMessage = "This record cannot be permanently deleted because it has related data. Please deactivate it instead.";
+
     private readonly AppDbContext _dbContext;
 
     public CourseService(AppDbContext dbContext)
@@ -99,6 +101,46 @@ public class CourseService : ICourseService
         course.IsActive = false;
         course.UpdatedAt = DateTimeOffset.UtcNow;
 
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task ReactivateAsync(int id)
+    {
+        var course = await _dbContext.Courses.SingleOrDefaultAsync(x => x.Id == id);
+        if (course is null)
+        {
+            throw new KeyNotFoundException($"Course with id {id} was not found.");
+        }
+
+        if (course.IsActive)
+        {
+            return;
+        }
+
+        course.IsActive = true;
+        course.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteForeverAsync(int id)
+    {
+        var course = await _dbContext.Courses.SingleOrDefaultAsync(x => x.Id == id);
+        if (course is null)
+        {
+            throw new KeyNotFoundException($"Course with id {id} was not found.");
+        }
+
+        var hasRelatedData = await _dbContext.Enrollments.AnyAsync(x => x.CourseId == id)
+            || await _dbContext.ClassSessions.AnyAsync(x => x.CourseId == id)
+            || await _dbContext.Payments.AnyAsync(x => x.CourseId == id);
+
+        if (hasRelatedData)
+        {
+            throw new InvalidOperationException(DeleteConflictMessage);
+        }
+
+        _dbContext.Courses.Remove(course);
         await _dbContext.SaveChangesAsync();
     }
 

@@ -13,4 +13,8 @@ public interface ITeacherService
     Task<TeacherResponse> UpdateAsync(int id, UpdateTeacherRequest request);
 
     Task DeactivateAsync(int id);
+
+    Task ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
 }

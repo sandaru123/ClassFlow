@@ -13,4 +13,8 @@ public interface IStudentService
     Task<StudentResponse> UpdateAsync(int id, UpdateStudentRequest request);
 
     Task DeactivateAsync(int id);
+
+    Task ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
 }

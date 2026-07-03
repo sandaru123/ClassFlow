@@ -32,6 +32,8 @@ public class ClassSessionResponse
 
     public ClassSessionStatus Status { get; set; }
 
+    public bool IsActive { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }

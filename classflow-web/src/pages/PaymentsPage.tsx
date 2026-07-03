@@ -6,12 +6,14 @@ import type { CourseResponse } from '../features/courses/types'
 import {
   cancelPayment,
   createPayment,
+  deletePaymentForever,
   getPaymentById,
   getPayments,
   getPaymentsByCourseId,
   getPaymentsByStudentId,
   getPendingPayments,
   recordPayment,
+  reactivatePayment,
   updatePayment,
 } from '../features/payments/api'
 import type {
@@ -34,6 +36,7 @@ type PaymentStatusFilter =
   | 'paid'
   | 'overdue'
   | 'cancelled'
+type RecordFilter = 'all' | 'active' | 'inactive'
 
 type PaymentFormValues = {
   studentId: string
@@ -130,6 +133,10 @@ function formatPaymentPeriod(month: number, year: number) {
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 409) {
+      return 'This record cannot be permanently deleted because it has related data. Please deactivate it instead.'
+    }
+
     return error.response?.data?.message ?? fallbackMessage
   }
 
@@ -721,6 +728,7 @@ export function PaymentsPage() {
   const [formMode, setFormMode] = useState<PaymentFormMode>('create')
   const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null)
   const [statusFilter, setStatusFilter] = useState<PaymentStatusFilter>('all')
+  const [recordFilter, setRecordFilter] = useState<RecordFilter>('all')
   const [studentFilter, setStudentFilter] = useState('')
   const [courseFilter, setCourseFilter] = useState('')
   const [paymentFormValues, setPaymentFormValues] =
@@ -835,10 +843,35 @@ export function PaymentsPage() {
     },
   })
 
+  const reactivatePaymentMutation = useMutation({
+    mutationFn: reactivatePayment,
+    onSuccess: async (_, paymentId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['payments'] }),
+        queryClient.invalidateQueries({ queryKey: ['payments', paymentId] }),
+      ])
+    },
+  })
+
+  const deletePaymentForeverMutation = useMutation({
+    mutationFn: deletePaymentForever,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['payments'] })
+    },
+  })
+
   const filteredPayments = useMemo(() => {
     const payments = paymentsQuery.data ?? []
 
     return payments.filter((payment) => {
+      if (recordFilter === 'active' && !payment.isActive) {
+        return false
+      }
+
+      if (recordFilter === 'inactive' && payment.isActive) {
+        return false
+      }
+
       if (!matchesStatusFilter(payment, statusFilter)) {
         return false
       }
@@ -853,7 +886,7 @@ export function PaymentsPage() {
 
       return true
     })
-  }, [courseFilter, paymentsQuery.data, statusFilter, studentFilter])
+  }, [courseFilter, paymentsQuery.data, recordFilter, statusFilter, studentFilter])
 
   function openCreateModal() {
     setFormMode('create')
@@ -1016,6 +1049,40 @@ export function PaymentsPage() {
     }
   }
 
+  async function handleReactivatePayment(payment: PaymentResponse) {
+    const shouldReactivate = window.confirm(
+      `Reactivate the payment for ${payment.studentName} / ${payment.courseName}?`,
+    )
+
+    if (!shouldReactivate) {
+      return
+    }
+
+    try {
+      await reactivatePaymentMutation.mutateAsync(payment.id)
+    } catch (error) {
+      window.alert(getErrorMessage(error, 'Unable to reactivate the selected payment.'))
+    }
+  }
+
+  async function handleDeleteForever(payment: PaymentResponse) {
+    const shouldDelete = window.confirm(
+      `Delete the payment for ${payment.studentName} / ${payment.courseName} forever? This cannot be undone.`,
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      await deletePaymentForeverMutation.mutateAsync(payment.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to permanently delete the selected payment.'),
+      )
+    }
+  }
+
   const pendingPaymentsCount = useMemo(
     () =>
       (paymentsQuery.data ?? []).filter((payment) => payment.paymentStatus === 0)
@@ -1056,7 +1123,7 @@ export function PaymentsPage() {
 
         <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-4">
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-700">
                   Status
@@ -1074,6 +1141,21 @@ export function PaymentsPage() {
                   <option value="paid">Paid</option>
                   <option value="overdue">Overdue</option>
                   <option value="cancelled">Cancelled</option>
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-700">
+                  Record State
+                </span>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                  onChange={(event) => setRecordFilter(event.target.value as RecordFilter)}
+                  value={recordFilter}
+                >
+                  <option value="all">All records</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                 </select>
               </label>
 
@@ -1163,8 +1245,8 @@ export function PaymentsPage() {
               No payments match the current filters
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Adjust the status, student, or course filters, or create the first
-              payment record to begin manual fee tracking.
+              Adjust the status, record state, student, or course filters, or create
+              the first payment record to begin manual fee tracking.
             </p>
             <button
               className="mt-6 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-600"
@@ -1266,6 +1348,14 @@ export function PaymentsPage() {
                             Record Payment
                           </button>
                           <button
+                            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={payment.isActive || reactivatePaymentMutation.isPending}
+                            onClick={() => void handleReactivatePayment(payment)}
+                            type="button"
+                          >
+                            Reactivate
+                          </button>
+                          <button
                             className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={
                               payment.paymentStatus === 4 ||
@@ -1275,6 +1365,14 @@ export function PaymentsPage() {
                             type="button"
                           >
                             {payment.paymentStatus === 4 ? 'Cancelled' : 'Cancel'}
+                          </button>
+                          <button
+                            className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={deletePaymentForeverMutation.isPending}
+                            onClick={() => void handleDeleteForever(payment)}
+                            type="button"
+                          >
+                            Delete Forever
                           </button>
                         </div>
                       </td>

@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   createCourse,
+  deleteCourseForever,
   deactivateCourse,
   getCourseById,
   getCourses,
+  reactivateCourse,
   updateCourse,
 } from '../features/courses/api'
 import type {
@@ -95,6 +98,10 @@ function getTeacherLabel(teacher: TeacherResponse) {
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 409) {
+      return 'This record cannot be permanently deleted because it has related data. Please deactivate it instead.'
+    }
+
     return error.response?.data?.message ?? fallbackMessage
   }
 
@@ -276,8 +283,12 @@ function CourseFormModal({
 }
 
 export function CoursesPage() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchValue, setSearchValue] = useState('')
+  const [recordFilter, setRecordFilter] = useState<'all' | 'active' | 'inactive'>(
+    'all',
+  )
   const [formMode, setFormMode] = useState<CourseFormMode>('create')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null)
@@ -336,15 +347,46 @@ export function CoursesPage() {
     },
   })
 
+  const reactivateCourseMutation = useMutation({
+    mutationFn: reactivateCourse,
+    onSuccess: async (_, courseId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['courses'] }),
+        queryClient.invalidateQueries({ queryKey: ['courses', courseId] }),
+      ])
+    },
+  })
+
+  const deleteCourseForeverMutation = useMutation({
+    mutationFn: deleteCourseForever,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['courses'] })
+    },
+  })
+
   const filteredCourses = useMemo(() => {
     const courses = coursesQuery.data ?? []
     const normalizedSearch = searchValue.trim().toLowerCase()
 
     if (!normalizedSearch) {
-      return courses
+      return courses.filter((course) =>
+        recordFilter === 'all'
+          ? true
+          : recordFilter === 'active'
+            ? course.isActive
+            : !course.isActive,
+      )
     }
 
     return courses.filter((course) => {
+      if (recordFilter === 'active' && !course.isActive) {
+        return false
+      }
+
+      if (recordFilter === 'inactive' && course.isActive) {
+        return false
+      }
+
       const searchableFields = [
         course.name,
         course.description ?? '',
@@ -355,7 +397,7 @@ export function CoursesPage() {
         field.toLowerCase().includes(normalizedSearch),
       )
     })
-  }, [coursesQuery.data, searchValue])
+  }, [coursesQuery.data, recordFilter, searchValue])
 
   function openCreateModal() {
     setFormMode('create')
@@ -433,6 +475,40 @@ export function CoursesPage() {
     }
   }
 
+  async function handleReactivate(course: CourseResponse) {
+    const shouldReactivate = window.confirm(`Reactivate ${course.name}?`)
+
+    if (!shouldReactivate) {
+      return
+    }
+
+    try {
+      await reactivateCourseMutation.mutateAsync(course.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to reactivate the selected course.'),
+      )
+    }
+  }
+
+  async function handleDeleteForever(course: CourseResponse) {
+    const shouldDelete = window.confirm(
+      `Delete ${course.name} forever? This cannot be undone.`,
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      await deleteCourseForeverMutation.mutateAsync(course.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to permanently delete the selected course.'),
+      )
+    }
+  }
+
   const isSubmitting =
     createCourseMutation.isPending || updateCourseMutation.isPending
 
@@ -469,19 +545,38 @@ export function CoursesPage() {
             <div>
               <p className="text-sm font-semibold text-slate-950">Course Directory</p>
               <p className="mt-1 text-sm text-slate-500">
-                Filter by course name, description, or assigned teacher.
+                Filter by course name, description, teacher, and record state.
               </p>
             </div>
 
-            <label className="block w-full md:max-w-sm">
-              <span className="sr-only">Search courses</span>
-              <input
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search courses"
-                value={searchValue}
-              />
-            </label>
+            <div className="flex w-full flex-col gap-3 md:max-w-2xl md:flex-row">
+              <label className="block md:w-44">
+                <span className="sr-only">Filter courses by state</span>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                  onChange={(event) =>
+                    setRecordFilter(
+                      event.target.value as 'all' | 'active' | 'inactive',
+                    )
+                  }
+                  value={recordFilter}
+                >
+                  <option value="all">All records</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+
+              <label className="block flex-1">
+                <span className="sr-only">Search courses</span>
+                <input
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="Search courses"
+                  value={searchValue}
+                />
+              </label>
+            </div>
           </div>
         </div>
 
@@ -584,6 +679,13 @@ export function CoursesPage() {
                       <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-2">
                           <button
+                            className="rounded-xl border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50"
+                            onClick={() => navigate(`/admin/courses/${course.id}`)}
+                            type="button"
+                          >
+                            Open Workspace
+                          </button>
+                          <button
                             className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
                             onClick={() => openEditModal(course.id)}
                             type="button"
@@ -599,6 +701,24 @@ export function CoursesPage() {
                             type="button"
                           >
                             {course.isActive ? 'Deactivate' : 'Inactive'}
+                          </button>
+                          <button
+                            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={
+                              course.isActive || reactivateCourseMutation.isPending
+                            }
+                            onClick={() => void handleReactivate(course)}
+                            type="button"
+                          >
+                            Reactivate
+                          </button>
+                          <button
+                            className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={deleteCourseForeverMutation.isPending}
+                            onClick={() => void handleDeleteForever(course)}
+                            type="button"
+                          >
+                            Delete Forever
                           </button>
                         </div>
                       </td>

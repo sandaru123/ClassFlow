@@ -33,3 +33,11 @@ export async function updateTeacher(
 export async function deactivateTeacher(id: number): Promise<void> {
   await apiClient.patch(`/teachers/${id}/deactivate`)
 }
+
+export async function reactivateTeacher(id: number): Promise<void> {
+  await apiClient.patch(`/teachers/${id}/reactivate`)
+}
+
+export async function deleteTeacherForever(id: number): Promise<void> {
+  await apiClient.delete(`/teachers/${id}/delete-forever`)
+}

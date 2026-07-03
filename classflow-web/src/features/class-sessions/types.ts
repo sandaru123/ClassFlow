@@ -16,6 +16,7 @@ export type ClassSessionResponse = {
   meetingUrl: string | null
   meetingPassword: string | null
   status: ClassSessionStatus
+  isActive: boolean
   createdAt: string
   updatedAt: string | null
 }
@@ -32,6 +33,20 @@ export type CreateClassSessionRequest = {
   meetingUrl: string | null
   meetingPassword: string | null
   status: ClassSessionStatus
+  isActive: boolean
 }
 
-export type UpdateClassSessionRequest = CreateClassSessionRequest
+export type UpdateClassSessionRequest = {
+  courseId: number
+  teacherId: number
+  title: string
+  description: string | null
+  startTime: string
+  endTime: string
+  classMode: ClassMode
+  meetingProvider: string | null
+  meetingUrl: string | null
+  meetingPassword: string | null
+  status: ClassSessionStatus
+  isActive: boolean
+}

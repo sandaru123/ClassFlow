@@ -13,4 +13,8 @@ public interface ICourseService
     Task<CourseResponse> UpdateAsync(int id, UpdateCourseRequest request);
 
     Task DeactivateAsync(int id);
+
+    Task ReactivateAsync(int id);
+
+    Task DeleteForeverAsync(int id);
 }

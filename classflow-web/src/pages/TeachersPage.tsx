@@ -3,9 +3,11 @@ import axios from 'axios'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   createTeacher,
+  deleteTeacherForever,
   deactivateTeacher,
   getTeacherById,
   getTeachers,
+  reactivateTeacher,
   updateTeacher,
 } from '../features/teachers/api'
 import type {
@@ -90,6 +92,10 @@ function formatDateTime(value: string) {
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 409) {
+      return 'This record cannot be permanently deleted because it has related data. Please deactivate it instead.'
+    }
+
     return error.response?.data?.message ?? fallbackMessage
   }
 
@@ -323,6 +329,9 @@ function TeacherFormModal({
 export function TeachersPage() {
   const queryClient = useQueryClient()
   const [searchValue, setSearchValue] = useState('')
+  const [recordFilter, setRecordFilter] = useState<'all' | 'active' | 'inactive'>(
+    'all',
+  )
   const [formMode, setFormMode] = useState<TeacherFormMode>('create')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null)
@@ -376,15 +385,46 @@ export function TeachersPage() {
     },
   })
 
+  const reactivateTeacherMutation = useMutation({
+    mutationFn: reactivateTeacher,
+    onSuccess: async (_, teacherId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['teachers'] }),
+        queryClient.invalidateQueries({ queryKey: ['teachers', teacherId] }),
+      ])
+    },
+  })
+
+  const deleteTeacherForeverMutation = useMutation({
+    mutationFn: deleteTeacherForever,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['teachers'] })
+    },
+  })
+
   const filteredTeachers = useMemo(() => {
     const teachers = teachersQuery.data ?? []
     const normalizedSearch = searchValue.trim().toLowerCase()
 
     if (!normalizedSearch) {
-      return teachers
+      return teachers.filter((teacher) =>
+        recordFilter === 'all'
+          ? true
+          : recordFilter === 'active'
+            ? teacher.isActive
+            : !teacher.isActive,
+      )
     }
 
     return teachers.filter((teacher) => {
+      if (recordFilter === 'active' && !teacher.isActive) {
+        return false
+      }
+
+      if (recordFilter === 'inactive' && teacher.isActive) {
+        return false
+      }
+
       const searchableFields = [
         `${teacher.firstName} ${teacher.lastName}`,
         teacher.email ?? '',
@@ -395,7 +435,7 @@ export function TeachersPage() {
         field.toLowerCase().includes(normalizedSearch),
       )
     })
-  }, [searchValue, teachersQuery.data])
+  }, [recordFilter, searchValue, teachersQuery.data])
 
   function openCreateModal() {
     setFormMode('create')
@@ -485,6 +525,42 @@ export function TeachersPage() {
     }
   }
 
+  async function handleReactivate(teacher: TeacherResponse) {
+    const shouldReactivate = window.confirm(
+      `Reactivate ${teacher.firstName} ${teacher.lastName}?`,
+    )
+
+    if (!shouldReactivate) {
+      return
+    }
+
+    try {
+      await reactivateTeacherMutation.mutateAsync(teacher.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to reactivate the selected teacher.'),
+      )
+    }
+  }
+
+  async function handleDeleteForever(teacher: TeacherResponse) {
+    const shouldDelete = window.confirm(
+      `Delete ${teacher.firstName} ${teacher.lastName} forever? This cannot be undone.`,
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      await deleteTeacherForeverMutation.mutateAsync(teacher.id)
+    } catch (error) {
+      window.alert(
+        getErrorMessage(error, 'Unable to permanently delete the selected teacher.'),
+      )
+    }
+  }
+
   const isSubmitting =
     createTeacherMutation.isPending || updateTeacherMutation.isPending
 
@@ -521,19 +597,38 @@ export function TeachersPage() {
             <div>
               <p className="text-sm font-semibold text-slate-950">Teacher Directory</p>
               <p className="mt-1 text-sm text-slate-500">
-                Filter by name, email, or phone number.
+                Filter by name, email, phone number, and record state.
               </p>
             </div>
 
-            <label className="block w-full md:max-w-sm">
-              <span className="sr-only">Search teachers</span>
-              <input
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search teachers"
-                value={searchValue}
-              />
-            </label>
+            <div className="flex w-full flex-col gap-3 md:max-w-2xl md:flex-row">
+              <label className="block md:w-44">
+                <span className="sr-only">Filter teachers by state</span>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                  onChange={(event) =>
+                    setRecordFilter(
+                      event.target.value as 'all' | 'active' | 'inactive',
+                    )
+                  }
+                  value={recordFilter}
+                >
+                  <option value="all">All records</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+
+              <label className="block flex-1">
+                <span className="sr-only">Search teachers</span>
+                <input
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="Search teachers"
+                  value={searchValue}
+                />
+              </label>
+            </div>
           </div>
         </div>
 
@@ -661,6 +756,25 @@ export function TeachersPage() {
                             type="button"
                           >
                             {teacher.isActive ? 'Deactivate' : 'Inactive'}
+                          </button>
+                          <button
+                            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={
+                              teacher.isActive ||
+                              reactivateTeacherMutation.isPending
+                            }
+                            onClick={() => void handleReactivate(teacher)}
+                            type="button"
+                          >
+                            Reactivate
+                          </button>
+                          <button
+                            className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={deleteTeacherForeverMutation.isPending}
+                            onClick={() => void handleDeleteForever(teacher)}
+                            type="button"
+                          >
+                            Delete Forever
                           </button>
                         </div>
                       </td>

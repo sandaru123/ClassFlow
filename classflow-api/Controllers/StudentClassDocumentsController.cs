@@ -60,7 +60,7 @@ public class StudentClassDocumentsController : ControllerBase
 
         try
         {
-            var document = await _classDocumentService.DownloadAsync(documentId);
+            var document = await _classDocumentService.DownloadAsync(documentId, null, true);
             return File(document.Content, document.ContentType, document.FileName);
         }
         catch (KeyNotFoundException ex)
