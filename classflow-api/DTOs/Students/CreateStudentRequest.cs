@@ -16,6 +16,11 @@ public class CreateStudentRequest
     [StringLength(256)]
     public string? Email { get; set; }
 
+    [StringLength(100)]
+    public string? TemporaryPassword { get; set; }
+
+    public bool CreateLoginAccount { get; set; }
+
     [StringLength(50)]
     public string? PhoneNumber { get; set; }
 

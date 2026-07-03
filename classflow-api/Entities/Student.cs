@@ -1,4 +1,4 @@
-﻿namespace ClassFlow.Api.Entities;
+namespace ClassFlow.Api.Entities;
 
 public class Student
 {
@@ -15,6 +15,10 @@ public class Student
     public string? Address { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
+
+    public string? ApplicationUserId { get; set; }
+
+    public ApplicationUser? ApplicationUser { get; set; }
 
     public bool IsActive { get; set; } = true;
 

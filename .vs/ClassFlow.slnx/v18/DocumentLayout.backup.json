@@ -3,24 +3,16 @@
   "WorkspaceRootPath": "D:\\ClassFlow\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\controllers\\studentportalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\controllers\\studentportalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\constants\\approles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\constants\\approles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\helpers\\swagger\\authorizeoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\helpers\\swagger\\authorizeoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|d:\\classflow\\classflow-api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{D689D3C6-76CE-A2C7-4A4C-B901DD396F63}|classflow-api\\ClassFlow.Api.csproj|solutionrelative:classflow-api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 773,
-          "SelectedChildIndex": 11,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Bookmark",
@@ -70,68 +62,40 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AppRoles.cs",
-              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Constants\\AppRoles.cs",
-              "RelativeDocumentMoniker": "classflow-api\\Constants\\AppRoles.cs",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\Constants\\AppRoles.cs",
-              "RelativeToolTip": "classflow-api\\Constants\\AppRoles.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA1AAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "StudentPortalController.cs",
+              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Controllers\\StudentPortalController.cs",
+              "RelativeDocumentMoniker": "classflow-api\\Controllers\\StudentPortalController.cs",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\StudentPortalController.cs",
+              "RelativeToolTip": "classflow-api\\Controllers\\StudentPortalController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-01T17:10:46.759Z",
+              "WhenOpened": "2026-07-01T22:00:19.732Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "AuthorizeOperationFilter.cs",
-              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
-              "RelativeDocumentMoniker": "classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
-              "RelativeToolTip": "classflow-api\\Helpers\\Swagger\\AuthorizeOperationFilter.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAoAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-01T16:56:45.173Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "AuthController.cs",
-              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs",
-              "RelativeDocumentMoniker": "classflow-api\\Controllers\\AuthController.cs",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs",
-              "RelativeToolTip": "classflow-api\\Controllers\\AuthController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-01T16:29:31.38Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Program.cs",
               "RelativeDocumentMoniker": "classflow-api\\Program.cs",
               "ToolTip": "D:\\ClassFlow\\classflow-api\\Program.cs",
               "RelativeToolTip": "classflow-api\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-01T15:37:38.019Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-01T20:51:50.434Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\appsettings.json",
-              "RelativeDocumentMoniker": "classflow-api\\appsettings.json",
-              "ToolTip": "D:\\ClassFlow\\classflow-api\\appsettings.json",
-              "RelativeToolTip": "classflow-api\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-07-01T15:37:32.335Z",
-              "EditorCaption": ""
+              "DocumentIndex": 1,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "classflow-api\\Controllers\\AuthController.cs",
+              "ToolTip": "D:\\ClassFlow\\classflow-api\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "classflow-api\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAgwCkAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-01T20:50:11.585Z"
             }
           ]
         },

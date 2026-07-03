@@ -20,13 +20,37 @@ public class Payment
 
     public decimal Amount { get; set; }
 
+    public decimal PaidAmount { get; set; }
+
+    public decimal BalanceAmount { get; set; }
+
+    public int PaymentMonth { get; set; }
+
+    public int PaymentYear { get; set; }
+
     public DateTimeOffset? DueDate { get; set; }
 
     public DateTimeOffset? PaidAt { get; set; }
 
-    public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
+    public DateTimeOffset? PaymentDate { get; set; }
 
-    public PaymentMethod? Method { get; set; }
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+
+    public PaymentMethod? PaymentMethod { get; set; }
+
+    public PaymentStatus Status
+    {
+        get => PaymentStatus;
+        set => PaymentStatus = value;
+    }
+
+    public PaymentMethod? Method
+    {
+        get => PaymentMethod;
+        set => PaymentMethod = value;
+    }
+
+    public bool IsActive { get; set; } = true;
 
     public string? ReferenceNumber { get; set; }
 

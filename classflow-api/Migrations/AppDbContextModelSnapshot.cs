@@ -115,6 +115,9 @@ namespace ClassFlow.Api.Migrations
                     b.Property<int>("ClassSessionId")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset>("MarkedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -130,11 +133,15 @@ namespace ClassFlow.Api.Migrations
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClassSessionId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("StudentId", "ClassSessionId")
+                        .IsUnique();
 
                     b.ToTable("AttendanceRecords");
                 });
@@ -352,6 +359,10 @@ namespace ClassFlow.Api.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("BalanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
@@ -364,23 +375,39 @@ namespace ClassFlow.Api.Migrations
                     b.Property<int>("EnrollmentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Method")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("PaymentDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentYear")
+                        .HasColumnType("int");
 
                     b.Property<string>("RecordedByUserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReferenceNumber")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
@@ -394,7 +421,7 @@ namespace ClassFlow.Api.Migrations
 
                     b.HasIndex("EnrollmentId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("StudentId", "CourseId", "PaymentMonth", "PaymentYear", "IsActive");
 
                     b.ToTable("Payments");
                 });
@@ -453,6 +480,9 @@ namespace ClassFlow.Api.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -481,6 +511,10 @@ namespace ClassFlow.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApplicationUserId")
+                        .IsUnique()
+                        .HasFilter("[ApplicationUserId] IS NOT NULL");
+
                     b.ToTable("Students");
                 });
 
@@ -494,6 +528,9 @@ namespace ClassFlow.Api.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -519,6 +556,10 @@ namespace ClassFlow.Api.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId")
+                        .IsUnique()
+                        .HasFilter("[ApplicationUserId] IS NOT NULL");
 
                     b.ToTable("Teachers");
                 });
@@ -773,6 +814,26 @@ namespace ClassFlow.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ClassFlow.Api.Entities.Student", b =>
+                {
+                    b.HasOne("ClassFlow.Api.Entities.ApplicationUser", "ApplicationUser")
+                        .WithOne("Student")
+                        .HasForeignKey("ClassFlow.Api.Entities.Student", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("ClassFlow.Api.Entities.Teacher", b =>
+                {
+                    b.HasOne("ClassFlow.Api.Entities.ApplicationUser", "ApplicationUser")
+                        .WithOne("Teacher")
+                        .HasForeignKey("ClassFlow.Api.Entities.Teacher", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -827,6 +888,10 @@ namespace ClassFlow.Api.Migrations
             modelBuilder.Entity("ClassFlow.Api.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("RefreshTokens");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("ClassFlow.Api.Entities.ClassSession", b =>

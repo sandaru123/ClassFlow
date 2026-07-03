@@ -1,8 +1,10 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
+using ClassFlow.Api.Constants;
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.Teachers;
 using ClassFlow.Api.Entities;
 using ClassFlow.Api.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassFlow.Api.Services;
@@ -10,10 +12,12 @@ namespace ClassFlow.Api.Services;
 public class TeacherService : ITeacherService
 {
     private readonly AppDbContext _dbContext;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public TeacherService(AppDbContext dbContext)
+    public TeacherService(AppDbContext dbContext, UserManager<ApplicationUser> userManager)
     {
         _dbContext = dbContext;
+        _userManager = userManager;
     }
 
     public async Task<IReadOnlyList<TeacherResponse>> GetAllAsync()
@@ -44,23 +48,90 @@ public class TeacherService : ITeacherService
 
     public async Task<TeacherResponse> CreateAsync(CreateTeacherRequest request)
     {
-        await EnsureEmailIsUniqueAsync(request.Email);
+        var normalizedEmail = NormalizeOptionalValue(request.Email);
+        await EnsureTeacherEmailIsUniqueAsync(normalizedEmail);
 
-        var teacher = new Teacher
+        if (!request.CreateLoginAccount)
         {
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
-            Email = NormalizeOptionalValue(request.Email),
-            PhoneNumber = NormalizeOptionalValue(request.PhoneNumber),
-            Address = NormalizeOptionalValue(request.Address),
-            IsActive = true,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
+            var teacher = new Teacher
+            {
+                FirstName = request.FirstName.Trim(),
+                LastName = request.LastName.Trim(),
+                Email = normalizedEmail,
+                PhoneNumber = NormalizeOptionalValue(request.PhoneNumber),
+                Address = NormalizeOptionalValue(request.Address),
+                IsActive = true,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
 
-        _dbContext.Teachers.Add(teacher);
-        await _dbContext.SaveChangesAsync();
+            _dbContext.Teachers.Add(teacher);
+            await _dbContext.SaveChangesAsync();
 
-        return MapToResponse(teacher);
+            return MapToResponse(teacher);
+        }
+
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            throw new InvalidOperationException("Email is required when creating a login account.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.TemporaryPassword))
+        {
+            throw new InvalidOperationException("TemporaryPassword is required when creating a login account.");
+        }
+
+        await EnsureIdentityEmailIsAvailableAsync(normalizedEmail);
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var now = DateTimeOffset.UtcNow;
+            var user = new ApplicationUser
+            {
+                UserName = normalizedEmail,
+                Email = normalizedEmail,
+                FirstName = request.FirstName.Trim(),
+                LastName = request.LastName.Trim(),
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = now
+            };
+
+            var createUserResult = await _userManager.CreateAsync(user, request.TemporaryPassword);
+            if (!createUserResult.Succeeded)
+            {
+                throw new InvalidOperationException(FormatErrors(createUserResult.Errors));
+            }
+
+            var addRoleResult = await _userManager.AddToRoleAsync(user, AppRoles.Teacher);
+            if (!addRoleResult.Succeeded)
+            {
+                throw new InvalidOperationException(FormatErrors(addRoleResult.Errors));
+            }
+
+            var teacher = new Teacher
+            {
+                FirstName = request.FirstName.Trim(),
+                LastName = request.LastName.Trim(),
+                Email = normalizedEmail,
+                PhoneNumber = NormalizeOptionalValue(request.PhoneNumber),
+                Address = NormalizeOptionalValue(request.Address),
+                ApplicationUserId = user.Id,
+                IsActive = true,
+                CreatedAt = now
+            };
+
+            _dbContext.Teachers.Add(teacher);
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return MapToResponse(teacher);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<TeacherResponse> UpdateAsync(int id, UpdateTeacherRequest request)
@@ -71,7 +142,7 @@ public class TeacherService : ITeacherService
             throw new KeyNotFoundException($"Teacher with id {id} was not found.");
         }
 
-        await EnsureEmailIsUniqueAsync(request.Email, id);
+        await EnsureTeacherEmailIsUniqueAsync(request.Email, id);
 
         teacher.FirstName = request.FirstName.Trim();
         teacher.LastName = request.LastName.Trim();
@@ -105,23 +176,30 @@ public class TeacherService : ITeacherService
         await _dbContext.SaveChangesAsync();
     }
 
-    private async Task EnsureEmailIsUniqueAsync(string? email, int? existingTeacherId = null)
+    private async Task EnsureTeacherEmailIsUniqueAsync(string? email, int? existingTeacherId = null)
     {
-        var normalizedEmail = NormalizeOptionalValue(email);
-        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        if (string.IsNullOrWhiteSpace(email))
         {
             return;
         }
 
-        var normalizedEmailLower = normalizedEmail.ToLower();
         var exists = await _dbContext.Teachers.AnyAsync(x =>
             x.Email != null &&
-            x.Email.ToLower() == normalizedEmailLower &&
+            x.Email.ToLower() == email.ToLower() &&
             (!existingTeacherId.HasValue || x.Id != existingTeacherId.Value));
 
         if (exists)
         {
             throw new InvalidOperationException("A teacher with this email already exists.");
+        }
+    }
+
+    private async Task EnsureIdentityEmailIsAvailableAsync(string email)
+    {
+        var existingUser = await _userManager.FindByEmailAsync(email);
+        if (existingUser is not null)
+        {
+            throw new InvalidOperationException("A user with this email already exists.");
         }
     }
 
@@ -138,6 +216,7 @@ public class TeacherService : ITeacherService
             FirstName = teacher.FirstName,
             LastName = teacher.LastName,
             Email = teacher.Email,
+            HasLoginAccount = !string.IsNullOrWhiteSpace(teacher.ApplicationUserId),
             PhoneNumber = teacher.PhoneNumber,
             Address = teacher.Address,
             IsActive = teacher.IsActive,
@@ -154,6 +233,7 @@ public class TeacherService : ITeacherService
             FirstName = teacher.FirstName,
             LastName = teacher.LastName,
             Email = teacher.Email,
+            HasLoginAccount = teacher.ApplicationUserId != null,
             PhoneNumber = teacher.PhoneNumber,
             Address = teacher.Address,
             IsActive = teacher.IsActive,
@@ -161,5 +241,9 @@ public class TeacherService : ITeacherService
             UpdatedAt = teacher.UpdatedAt
         };
     }
-}
 
+    private static string FormatErrors(IEnumerable<IdentityError> errors)
+    {
+        return string.Join("; ", errors.Select(error => error.Description));
+    }
+}
