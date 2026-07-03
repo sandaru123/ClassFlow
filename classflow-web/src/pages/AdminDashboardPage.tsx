@@ -68,36 +68,131 @@ function formatTimeRange(startTime: string, endTime: string) {
   return `${formatter.format(new Date(startTime))} - ${formatter.format(new Date(endTime))}`
 }
 
-function getPaymentStatusClasses(status: string) {
-  const normalizedStatus = status.toLowerCase()
+function normalizeEnumValue(value: string | number | null | undefined) {
+  if (typeof value === 'number') {
+    return String(value)
+  }
 
-  if (normalizedStatus === 'paid') {
+  return (value ?? '').toLowerCase().replaceAll(' ', '')
+}
+
+function getPaymentStatusLabel(status: string | number) {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 0:
+        return 'Pending'
+      case 1:
+        return 'Partially Paid'
+      case 2:
+        return 'Paid'
+      case 3:
+        return 'Overdue'
+      case 4:
+        return 'Cancelled'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  return status
+}
+
+function getPaymentMethodLabel(paymentMethod: string | number | null) {
+  if (paymentMethod == null) {
+    return 'Not set'
+  }
+
+  if (typeof paymentMethod === 'number') {
+    switch (paymentMethod) {
+      case 0:
+        return 'Cash'
+      case 1:
+        return 'Bank Transfer'
+      case 2:
+        return 'Card'
+      case 3:
+        return 'Cheque'
+      case 4:
+        return 'Other'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  return paymentMethod
+}
+
+function getClassStatusLabel(status: string | number) {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 0:
+        return 'Scheduled'
+      case 1:
+        return 'Ongoing'
+      case 2:
+        return 'Completed'
+      case 3:
+        return 'Cancelled'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  return status
+}
+
+function getClassModeLabel(classMode: string | number) {
+  if (typeof classMode === 'number') {
+    switch (classMode) {
+      case 0:
+        return 'Physical'
+      case 1:
+        return 'Online'
+      case 2:
+        return 'Hybrid'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  return classMode
+}
+
+function getPaymentStatusClasses(status: string | number) {
+  const normalizedStatus = normalizeEnumValue(status)
+
+  if (normalizedStatus === '2' || normalizedStatus === 'paid') {
     return 'bg-emerald-50 text-emerald-700 ring-emerald-200'
   }
 
-  if (normalizedStatus === 'pending' || normalizedStatus === 'partiallypaid') {
+  if (
+    normalizedStatus === '0' ||
+    normalizedStatus === '1' ||
+    normalizedStatus === 'pending' ||
+    normalizedStatus === 'partiallypaid'
+  ) {
     return 'bg-amber-50 text-amber-700 ring-amber-200'
   }
 
-  if (normalizedStatus === 'overdue') {
+  if (normalizedStatus === '3' || normalizedStatus === 'overdue') {
     return 'bg-rose-50 text-rose-700 ring-rose-200'
   }
 
   return 'bg-slate-100 text-slate-700 ring-slate-200'
 }
 
-function getClassStatusClasses(status: string) {
-  const normalizedStatus = status.toLowerCase()
+function getClassStatusClasses(status: string | number) {
+  const normalizedStatus = normalizeEnumValue(status)
 
-  if (normalizedStatus === 'scheduled') {
+  if (normalizedStatus === '0' || normalizedStatus === 'scheduled') {
     return 'bg-sky-50 text-sky-700 ring-sky-200'
   }
 
-  if (normalizedStatus === 'ongoing') {
+  if (normalizedStatus === '1' || normalizedStatus === 'ongoing') {
     return 'bg-emerald-50 text-emerald-700 ring-emerald-200'
   }
 
-  if (normalizedStatus === 'cancelled') {
+  if (normalizedStatus === '3' || normalizedStatus === 'cancelled') {
     return 'bg-rose-50 text-rose-700 ring-rose-200'
   }
 
@@ -177,13 +272,15 @@ function RecentPaymentsSection({ payments }: { payments: RecentPayment[] }) {
                   <td className="px-6 py-4 font-medium">
                     {formatCurrency(payment.amount)}
                   </td>
-                  <td className="px-6 py-4">{payment.paymentMethod}</td>
+                  <td className="px-6 py-4">
+                    {getPaymentMethodLabel(payment.paymentMethod)}
+                  </td>
                   <td className="px-6 py-4">{formatDateTime(payment.paymentDate)}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getPaymentStatusClasses(payment.status)}`}
                     >
-                      {payment.status}
+                      {getPaymentStatusLabel(payment.status)}
                     </span>
                   </td>
                 </tr>
@@ -244,12 +341,14 @@ function UpcomingClassesSection({ classes }: { classes: UpcomingClass[] }) {
                       )}
                     </p>
                   </td>
-                  <td className="px-6 py-4">{upcomingClass.classMode}</td>
+                  <td className="px-6 py-4">
+                    {getClassModeLabel(upcomingClass.classMode)}
+                  </td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getClassStatusClasses(upcomingClass.status)}`}
                     >
-                      {upcomingClass.status}
+                      {getClassStatusLabel(upcomingClass.status)}
                     </span>
                   </td>
                 </tr>

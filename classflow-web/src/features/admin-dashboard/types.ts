@@ -4,8 +4,8 @@ export type RecentPayment = {
   courseName: string
   amount: number
   paymentDate: string
-  paymentMethod: string
-  status: string
+  paymentMethod: string | number | null
+  status: string | number
 }
 
 export type UpcomingClass = {
@@ -15,8 +15,8 @@ export type UpcomingClass = {
   teacherName: string
   startTime: string
   endTime: string
-  classMode: string
-  status: string
+  classMode: string | number
+  status: string | number
 }
 
 export type AdminDashboardResponse = {
