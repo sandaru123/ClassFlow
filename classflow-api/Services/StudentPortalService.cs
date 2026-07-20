@@ -38,6 +38,71 @@ public class StudentPortalService : IStudentPortalService
             .ToListAsync();
     }
 
+    public async Task<MyCourseDetailsResponse> GetMyCourseByIdAsync(string? applicationUserId, int courseId)
+    {
+        var student = await ResolveStudentAsync(applicationUserId);
+
+        var enrollment = await _dbContext.Enrollments
+            .AsNoTracking()
+            .Include(x => x.Course)
+            .ThenInclude(x => x.Teacher)
+            .SingleOrDefaultAsync(x =>
+                x.StudentId == student.Id &&
+                x.CourseId == courseId &&
+                x.IsActive);
+
+        if (enrollment is null)
+        {
+            throw new InvalidOperationException("The logged-in student is not actively enrolled in this course.");
+        }
+
+        var sessions = await _dbContext.ClassSessions
+            .AsNoTracking()
+            .Include(x => x.ClassDocuments.Where(document => document.IsActive))
+            .Where(x => x.CourseId == courseId)
+            .OrderBy(x => x.StartDateTime)
+            .ToListAsync();
+
+        var sessionResponses = new List<MyCourseSessionDetailsResponse>(sessions.Count);
+        foreach (var session in sessions)
+        {
+            var documents = new List<MyCourseSessionDocumentResponse>(session.ClassDocuments.Count);
+            foreach (var document in session.ClassDocuments.OrderByDescending(x => x.UploadedAt))
+            {
+                documents.Add(await _classDocumentService.GetStudentCourseDocumentAsync(document.Id, student.Id));
+            }
+
+            sessionResponses.Add(new MyCourseSessionDetailsResponse
+            {
+                ClassSessionId = session.Id,
+                Title = session.Title,
+                Description = session.Description,
+                StartTime = session.StartDateTime,
+                EndTime = session.EndDateTime,
+                ClassMode = session.Mode,
+                Status = session.Status,
+                MeetingProvider = session.MeetingProvider,
+                MeetingUrl = session.MeetingUrl,
+                Documents = documents
+            });
+        }
+
+        return new MyCourseDetailsResponse
+        {
+            CourseId = enrollment.CourseId,
+            CourseName = enrollment.Course.Name,
+            Description = enrollment.Course.Description,
+            MonthlyFee = enrollment.Course.MonthlyFee,
+            TeacherId = enrollment.Course.TeacherId,
+            TeacherName = (enrollment.Course.Teacher.FirstName + " " + enrollment.Course.Teacher.LastName).Trim(),
+            TeacherEmail = enrollment.Course.Teacher.Email,
+            TeacherPhoneNumber = enrollment.Course.Teacher.PhoneNumber,
+            EnrolledAt = enrollment.EnrolledAt,
+            EnrollmentStatus = enrollment.Status,
+            Sessions = sessionResponses
+        };
+    }
+
     public async Task<IReadOnlyList<MyClassSessionResponse>> GetMyUpcomingClassesAsync(string? applicationUserId)
     {
         var student = await ResolveStudentAsync(applicationUserId);

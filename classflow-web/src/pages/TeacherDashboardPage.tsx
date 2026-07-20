@@ -97,6 +97,13 @@ export function TeacherDashboardPage() {
             Your teacher portal data could not be fetched right now. Refresh the page
             after confirming the API is running.
           </p>
+          <button
+            className="mt-6 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            Retry Dashboard Load
+          </button>
         </div>
       </section>
     )
@@ -247,10 +254,10 @@ export function TeacherDashboardPage() {
                     <div>
                       <p className="font-semibold text-slate-950">{document.title}</p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {document.classSessionTitle} · {document.originalFileName}
+                        {document.classSessionTitle} | {document.originalFileName}
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {formatFileSize(document.fileSizeInBytes)} ·{' '}
+                        {formatFileSize(document.fileSizeInBytes)} |{' '}
                         {formatDateTime(document.uploadedAt)}
                       </p>
                     </div>

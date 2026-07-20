@@ -75,15 +75,14 @@ public class StudentClassDocumentsController : ControllerBase
 
     private async Task<Student?> ResolveCurrentStudentAsync()
     {
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        if (string.IsNullOrWhiteSpace(email))
+        var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(applicationUserId))
         {
             return null;
         }
 
-        var normalizedEmail = email.ToLower();
         return await _dbContext.Students
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+            .SingleOrDefaultAsync(x => x.ApplicationUserId == applicationUserId);
     }
 }

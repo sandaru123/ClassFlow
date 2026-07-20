@@ -35,7 +35,8 @@ public class DashboardController : ControllerBase
     {
         try
         {
-            var result = await _dashboardService.GetTeacherDashboardAsync(User.FindFirstValue(ClaimTypes.Email));
+            var result = await _dashboardService.GetTeacherDashboardAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
             return Ok(result);
         }
         catch (InvalidOperationException)
@@ -50,7 +51,8 @@ public class DashboardController : ControllerBase
     {
         try
         {
-            var result = await _dashboardService.GetStudentDashboardAsync(User.FindFirstValue(ClaimTypes.Email));
+            var result = await _dashboardService.GetStudentDashboardAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
             return Ok(result);
         }
         catch (InvalidOperationException)

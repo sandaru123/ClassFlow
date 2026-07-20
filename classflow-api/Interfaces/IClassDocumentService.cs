@@ -1,5 +1,6 @@
-﻿using ClassFlow.Api.Services;
 using ClassFlow.Api.DTOs.ClassDocuments;
+using ClassFlow.Api.DTOs.StudentPortal;
+using ClassFlow.Api.Services;
 
 namespace ClassFlow.Api.Interfaces;
 
@@ -26,5 +27,6 @@ public interface IClassDocumentService
     Task<DocumentDownloadResult> DownloadAsync(int documentId, string? applicationUserId, bool isAdmin);
 
     Task<bool> CanStudentAccessDocumentAsync(int documentId, int studentId);
-}
 
+    Task<MyCourseSessionDocumentResponse> GetStudentCourseDocumentAsync(int documentId, int studentId);
+}

@@ -17,6 +17,7 @@ import {
   TeacherSessionDetailsPage,
 } from '../pages/SessionDetailsPage'
 import { StudentAttendancePage } from '../pages/StudentAttendancePage'
+import { StudentCourseDetailsPage } from '../pages/StudentCourseDetailsPage'
 import { StudentCoursesPage } from '../pages/StudentCoursesPage'
 import { StudentDashboardPage } from '../pages/StudentDashboardPage'
 import { StudentDocumentsPage } from '../pages/StudentDocumentsPage'
@@ -40,6 +41,7 @@ const adminNavigation = [
   { label: 'Teachers', to: '/admin/teachers' },
   { label: 'Courses', to: '/admin/courses' },
   { label: 'Enrollments', to: '/admin/enrollments' },
+  { label: 'Class Sessions', to: '/admin/class-sessions' },
   { label: 'Attendance', to: '/admin/attendance' },
   { label: 'Payments', to: '/admin/payments' },
   { label: 'Documents', to: '/admin/documents' },
@@ -110,6 +112,7 @@ export const router = createBrowserRouter([
     children: [
       { path: 'dashboard', element: <StudentDashboardPage /> },
       { path: 'courses', element: <StudentCoursesPage /> },
+      { path: 'courses/:courseId', element: <StudentCourseDetailsPage /> },
       { path: 'schedule', element: <StudentSchedulePage /> },
       { path: 'documents', element: <StudentDocumentsPage /> },
       { path: 'payments', element: <StudentPaymentsPage /> },

@@ -32,6 +32,16 @@ export function TeacherCoursesPage() {
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
           Your course list could not be fetched
         </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Check that the API is running and try loading your assigned courses again.
+        </p>
+        <button
+          className="mt-6 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+          onClick={() => void coursesQuery.refetch()}
+          type="button"
+        >
+          Retry Course Load
+        </button>
       </div>
     )
   }
@@ -81,8 +91,16 @@ export function TeacherCoursesPage() {
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <dt>Status</dt>
-                  <dd className="font-medium text-slate-950">
-                    {course.isActive ? 'Active' : 'Inactive'}
+                  <dd>
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                        course.isActive
+                          ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                          : 'bg-slate-100 text-slate-700 ring-slate-200'
+                      }`}
+                    >
+                      {course.isActive ? 'Active' : 'Inactive'}
+                    </span>
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">

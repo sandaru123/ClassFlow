@@ -3,6 +3,7 @@ import type {
   ClassMode,
   ClassSessionStatus,
   DocumentVisibilityType,
+  EnrollmentStatus,
   PaymentMethod,
   PaymentStatus,
 } from './types'
@@ -206,6 +207,36 @@ export function getDocumentVisibilityBadgeClasses(
       return 'bg-violet-50 text-violet-700 ring-violet-200'
     case 4:
       return 'bg-slate-100 text-slate-700 ring-slate-200'
+    default:
+      return 'bg-slate-100 text-slate-700 ring-slate-200'
+  }
+}
+
+export function getEnrollmentStatusLabel(status: EnrollmentStatus) {
+  switch (status) {
+    case 0:
+      return 'Active'
+    case 1:
+      return 'Completed'
+    case 2:
+      return 'Dropped'
+    case 3:
+      return 'Cancelled'
+    default:
+      return 'Unknown'
+  }
+}
+
+export function getEnrollmentStatusBadgeClasses(status: EnrollmentStatus) {
+  switch (status) {
+    case 0:
+      return 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+    case 1:
+      return 'bg-slate-100 text-slate-700 ring-slate-200'
+    case 2:
+      return 'bg-amber-50 text-amber-700 ring-amber-200'
+    case 3:
+      return 'bg-rose-50 text-rose-700 ring-rose-200'
     default:
       return 'bg-slate-100 text-slate-700 ring-slate-200'
   }

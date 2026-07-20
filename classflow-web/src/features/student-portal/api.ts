@@ -2,6 +2,7 @@ import { apiClient } from '../../api/client'
 import type {
   MyAttendanceResponse,
   MyClassSessionResponse,
+  MyCourseDetailsResponse,
   MyCourseResponse,
   MyDocumentResponse,
   MyPaymentResponse,
@@ -9,6 +10,13 @@ import type {
 
 export async function getMyCourses(): Promise<MyCourseResponse[]> {
   const response = await apiClient.get<MyCourseResponse[]>('/student-portal/my-courses')
+  return response.data
+}
+
+export async function getMyCourseById(courseId: number): Promise<MyCourseDetailsResponse> {
+  const response = await apiClient.get<MyCourseDetailsResponse>(
+    `/student-portal/my-courses/${courseId}`,
+  )
   return response.data
 }
 

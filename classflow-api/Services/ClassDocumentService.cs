@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using ClassFlow.Api.Data;
 using ClassFlow.Api.DTOs.ClassDocuments;
+using ClassFlow.Api.DTOs.StudentPortal;
 using ClassFlow.Api.Entities;
 using ClassFlow.Api.Enums;
 using ClassFlow.Api.Interfaces;
@@ -250,6 +251,46 @@ public class ClassDocumentService : IClassDocumentService
         return IsStudentAccessAllowed(document, DateTimeOffset.UtcNow);
     }
 
+    public async Task<MyCourseSessionDocumentResponse> GetStudentCourseDocumentAsync(int documentId, int studentId)
+    {
+        var document = await _dbContext.ClassDocuments
+            .AsNoTracking()
+            .Include(x => x.ClassSession)
+            .SingleOrDefaultAsync(x => x.Id == documentId);
+
+        if (document is null)
+        {
+            throw new KeyNotFoundException($"Class document with id {documentId} was not found.");
+        }
+
+        var isEnrolled = await _dbContext.Enrollments.AnyAsync(x =>
+            x.StudentId == studentId &&
+            x.CourseId == document.ClassSession.CourseId &&
+            x.IsActive);
+
+        if (!isEnrolled)
+        {
+            throw new InvalidOperationException("The student is not enrolled in the related course.");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var isAvailable = document.IsActive && IsStudentAccessAllowed(document, now);
+
+        return new MyCourseSessionDocumentResponse
+        {
+            DocumentId = document.Id,
+            Title = document.Title,
+            Description = document.Description,
+            OriginalFileName = document.OriginalFileName,
+            FileType = document.FileType,
+            FileSizeInBytes = document.FileSizeInBytes,
+            VisibilityType = document.VisibilityType,
+            UploadedAt = document.UploadedAt,
+            IsAvailable = isAvailable,
+            AvailabilityMessage = BuildStudentAvailabilityMessage(document, now)
+        };
+    }
+
     private async Task EnsureClassSessionExistsAsync(int classSessionId)
     {
         var exists = await _dbContext.ClassSessions.AnyAsync(x => x.Id == classSessionId);
@@ -299,6 +340,34 @@ public class ClassDocumentService : IClassDocumentService
             DocumentVisibilityType.AvailableAfterClass => now > document.ClassSession.EndDateTime,
             DocumentVisibilityType.AvailableAfterTeacherMarksCompleted => document.ClassSession.Status == ClassSessionStatus.Completed,
             _ => false
+        };
+    }
+
+    private static string BuildStudentAvailabilityMessage(ClassDocument document, DateTimeOffset now)
+    {
+        if (!document.IsActive)
+        {
+            return "This document is not available.";
+        }
+
+        return document.VisibilityType switch
+        {
+            DocumentVisibilityType.AvailableImmediately => "Available now.",
+            DocumentVisibilityType.AvailableBeforeClass => now < document.ClassSession.StartDateTime
+                ? "Available before class starts."
+                : "This document was only available before class started.",
+            DocumentVisibilityType.AvailableDuringClass => now < document.ClassSession.StartDateTime
+                ? "Available when class starts."
+                : now <= document.ClassSession.EndDateTime
+                    ? "Available during class."
+                    : "This document was only available during class.",
+            DocumentVisibilityType.AvailableAfterClass => now > document.ClassSession.EndDateTime
+                ? "Available after class."
+                : "Available after class ends.",
+            DocumentVisibilityType.AvailableAfterTeacherMarksCompleted => document.ClassSession.Status == ClassSessionStatus.Completed
+                ? "Available after the class was marked completed."
+                : "Available after the teacher marks the class as completed.",
+            _ => "Availability depends on the session rules."
         };
     }
 

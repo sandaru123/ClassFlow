@@ -102,9 +102,9 @@ public class DashboardService : IDashboardService
         };
     }
 
-    public async Task<TeacherDashboardResponse> GetTeacherDashboardAsync(string? email)
+    public async Task<TeacherDashboardResponse> GetTeacherDashboardAsync(string? applicationUserId)
     {
-        var teacher = await ResolveTeacherAsync(email);
+        var teacher = await ResolveTeacherAsync(applicationUserId);
         var now = DateTimeOffset.UtcNow;
         var todayStart = now.Date;
         var tomorrowStart = todayStart.AddDays(1);
@@ -172,9 +172,9 @@ public class DashboardService : IDashboardService
         };
     }
 
-    public async Task<StudentDashboardResponse> GetStudentDashboardAsync(string? email)
+    public async Task<StudentDashboardResponse> GetStudentDashboardAsync(string? applicationUserId)
     {
-        var student = await ResolveStudentAsync(email);
+        var student = await ResolveStudentAsync(applicationUserId);
         var now = DateTimeOffset.UtcNow;
         var courseIds = await GetActiveCourseIdsAsync(student.Id);
 
@@ -269,17 +269,16 @@ public class DashboardService : IDashboardService
         };
     }
 
-    private async Task<Student> ResolveStudentAsync(string? email)
+    private async Task<Student> ResolveStudentAsync(string? applicationUserId)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(applicationUserId))
         {
             throw new InvalidOperationException("The logged-in user is not linked to a student record.");
         }
 
-        var normalizedEmail = email.Trim().ToLower();
         var student = await _dbContext.Students
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+            .SingleOrDefaultAsync(x => x.ApplicationUserId == applicationUserId);
 
         if (student is null)
         {
@@ -289,17 +288,16 @@ public class DashboardService : IDashboardService
         return student;
     }
 
-    private async Task<Teacher> ResolveTeacherAsync(string? email)
+    private async Task<Teacher> ResolveTeacherAsync(string? applicationUserId)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(applicationUserId))
         {
             throw new InvalidOperationException("The logged-in user is not linked to a teacher record.");
         }
 
-        var normalizedEmail = email.Trim().ToLower();
         var teacher = await _dbContext.Teachers
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+            .SingleOrDefaultAsync(x => x.ApplicationUserId == applicationUserId);
 
         if (teacher is null)
         {

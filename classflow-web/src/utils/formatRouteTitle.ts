@@ -36,6 +36,10 @@ export function formatRouteTitle(pathname: string) {
     return 'Course Workspace'
   }
 
+  if (pathname.startsWith('/student/courses/')) {
+    return 'Course Workspace'
+  }
+
   if (pathname.startsWith('/teacher/courses/')) {
     return 'Course Workspace'
   }

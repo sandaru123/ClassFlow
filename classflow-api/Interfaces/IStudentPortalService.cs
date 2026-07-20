@@ -6,6 +6,8 @@ public interface IStudentPortalService
 {
     Task<IReadOnlyList<MyCourseResponse>> GetMyCoursesAsync(string? applicationUserId);
 
+    Task<MyCourseDetailsResponse> GetMyCourseByIdAsync(string? applicationUserId, int courseId);
+
     Task<IReadOnlyList<MyClassSessionResponse>> GetMyUpcomingClassesAsync(string? applicationUserId);
 
     Task<IReadOnlyList<MyClassSessionResponse>> GetMyClassSessionsAsync(string? applicationUserId);

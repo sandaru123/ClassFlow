@@ -24,6 +24,21 @@ public class StudentPortalController : ControllerBase
         return await ExecuteAsync(_studentPortalService.GetMyCoursesAsync);
     }
 
+    [HttpGet("my-courses/{courseId:int}")]
+    public async Task<ActionResult<MyCourseDetailsResponse>> GetMyCourseById(int courseId)
+    {
+        try
+        {
+            var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _studentPortalService.GetMyCourseByIdAsync(applicationUserId, courseId);
+            return Ok(result);
+        }
+        catch (InvalidOperationException)
+        {
+            return Forbid();
+        }
+    }
+
     [HttpGet("my-upcoming-classes")]
     public async Task<ActionResult<IReadOnlyList<MyClassSessionResponse>>> GetMyUpcomingClasses()
     {

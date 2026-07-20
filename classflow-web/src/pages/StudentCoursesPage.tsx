@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { getMyCourses } from '../features/student-portal/api'
 import { formatCurrency, formatDateTime } from '../features/student-portal/utils'
 
 export function StudentCoursesPage() {
+  const navigate = useNavigate()
   const coursesQuery = useQuery({
     queryKey: ['student-portal', 'courses'],
     queryFn: getMyCourses,
@@ -30,6 +32,16 @@ export function StudentCoursesPage() {
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
           Your course list could not be fetched
         </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Check that the API is running and try loading your enrolled courses again.
+        </p>
+        <button
+          className="mt-6 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+          onClick={() => void coursesQuery.refetch()}
+          type="button"
+        >
+          Retry Course Load
+        </button>
       </div>
     )
   }
@@ -88,6 +100,15 @@ export function StudentCoursesPage() {
                   </dd>
                 </div>
               </dl>
+              <div className="mt-5">
+                <button
+                  className="rounded-2xl border border-sky-200 px-4 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+                  onClick={() => navigate(`/student/courses/${course.courseId}`)}
+                  type="button"
+                >
+                  View Course
+                </button>
+              </div>
             </article>
           ))}
         </div>
